@@ -5,8 +5,9 @@ import Sidebar from "./components/Sidebar";
 
 function App() {
   return (
-    <div className="grid grid-cols-[330px_auto] w-screen h-screen">
+    <div className="flex w-screen h-screen">
       <Sidebar />
+      <div className="h-screen w-1 bg-slate-100"></div>
       <Chat />
     </div>
   );
