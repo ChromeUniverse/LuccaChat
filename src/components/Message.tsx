@@ -5,7 +5,7 @@ type Props = {}
 
 function Message({}: Props) {
   return (
-    <div className='pl-6 grid grid-cols-[3rem_auto] items-start gap-3 py-4 hover:bg-slate-300 rounded-lg hover:bg-opacity-40'>
+    <div className='pl-6 pr-10 grid grid-cols-[3rem_auto] items-start gap-3 py-4 hover:bg-slate-300 rounded-lg hover:bg-opacity-40'>
       {/* User Avatar */}      
       <div className="bg-slate-900 w-12 h-12 flex items-center justify-center rounded-full">
         <img className="w-[90%] rounded-full" src={avatar} alt="" />
