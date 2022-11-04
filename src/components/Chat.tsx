@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 // Test photo
 import creeper from '../assets/creeper.webp'
@@ -9,47 +9,143 @@ import TextareaAutosize from 'react-textarea-autosize';
 
 // Font Awesome
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faEllipsisV, faPaperPlane } from '@fortawesome/free-solid-svg-icons'
+import { faArrowRightFromBracket, faCircleInfo, faEllipsisV, faGear, faPaperPlane, faVolumeXmark, IconDefinition } from '@fortawesome/free-solid-svg-icons'
 
-type Props = {}
 
-function Chat({ }: Props) {
+type MenuLineProps = {
+  text: string;
+  icon: IconDefinition;
+  danger?: boolean;
+  onClick?: (value: 'user' | 'group' | null) => void;
+  setOptionsOpen?: (value: boolean) => void;
+};
+
+// A line inside the dropdown menu
+function MenuLine({text, icon, danger = false, onClick = () => {}, setOptionsOpen = () => {}} : MenuLineProps) {
+  return (
+    <div
+      className={`flex w-full justify-between px-2 py-1.5 rounded-md cursor-pointer hover:bg-slate-400 hover:bg-opacity-30 ${
+        danger ? "mt-2" : ""
+      }`}
+      onClick={() => { onClick('group');  setOptionsOpen(false); }}
+    >
+      <p className={danger ? "text-red-500 font-semibold" : ""}>{text}</p>
+      <FontAwesomeIcon
+        className={`w-6 text-center ${
+          danger ? "text-red-500 font-semibold" : ""
+        }`}
+        icon={icon}
+        size="lg"
+      />
+    </div>
+  );
+}
+
+type DropdownMenuProps = {
+  menuOpen: boolean;
+  setInfoOpen: (value: 'user' | 'group' | null) => void;
+  setOptionsOpen: (value: boolean) => void;
+};
+
+// The message's dropdown menu
+function DropdownMenu({menuOpen, setInfoOpen, setOptionsOpen} : DropdownMenuProps) {
+  return (
+    <div
+      className={`
+        absolute -top-2 right-14 px-2 py-2 w-52 bg-slate-300 rounded-md flex flex-col gap-1 transition-all select-none
+        ${menuOpen ? 'z-10 -top-2' : '-z-10 -top-4'}
+      `}
+    >
+      <MenuLine text="Group info" icon={faCircleInfo} onClick={setInfoOpen} setOptionsOpen={setOptionsOpen} />
+      <MenuLine text="Group settings" icon={faGear} />
+      <MenuLine text="Mute group" icon={faVolumeXmark} />
+      <MenuLine text="Leave group" icon={faArrowRightFromBracket} danger/>
+    </div>
+  );
+}
+
+type Props = {
+  setInfoOpen: (value: 'user' | 'group' | null) => void;
+};
+
+function Chat({setInfoOpen}: Props) {
+
+  const [messages, setMessages] = useState([
+    {id: 1}, {id: 2}, {id: 3}, {id: 4}, {id: 5}
+  ])
+
+  // Message dropdown
+  const [open, setOpen] = useState<number | null>(null);
+
+  // Chat dropdown
+  const [optionsOpen, setOptionsOpen] = useState(false);
 
   function handleInput(e: React.FormEvent<HTMLTextAreaElement>) {
     const newInput = e.currentTarget.value;
   }
 
+  function handleClick(id: number): void {
+    return open === id ? setOpen(null) : setOpen(id);
+  }
+
   return (
-    <main className="flex flex-col bg-slate-200 h-screen">
+    <main className="flex flex-col bg-slate-200 h-screen overflow-x-hidden">
       {/* Chat Header */}
-      <div className="w-full bg-slate-300 pl-5 pr-8 h-20 flex items-center flex-shrink-0">
+      <div className="relative w-full bg-slate-300 pl-5 pr-8 h-20 flex items-center flex-shrink-0">
         {/* Avatar */}
-        <div className="bg-slate-900 w-12 h-12 flex flex-shrink-0 items-center justify-center rounded-full">
+        <div className="bg-slate-900 w-12 h-12 flex flex-shrink-0 items-center justify-center rounded-full select-none">
           <img className="w-[90%] rounded-full" src={creeper} alt="" />
         </div>
 
         {/* Name */}
         <div className="flex flex-col pl-3">
-          <h3 className="font-normal text-xl">The Best Group Chat Ever</h3>
+          <h3 className="font-normal text-xl">Pessoal 2.0</h3>
           <p className="font-normal text-sm">99 participants • 22 online</p>
         </div>
 
         {/* Ellipsis icon */}
-        <FontAwesomeIcon className='ml-auto cursor-pointer' icon={faEllipsisV} size="xl"/>
+        <div
+          className={`
+            ml-auto w-12 h-12 flex items-center bg-slate-300 justify-center rounded-xl cursor-pointer hover:brightness-90
+            ${optionsOpen ? 'brightness-90' : ''}
+          `}
+          onClick={() => setOptionsOpen((prev) => !prev)}
+        >
+          <FontAwesomeIcon
+            className="text-slate-600"
+            icon={faEllipsisV}
+            size="xl"
+          />
+        </div>
+
+        {/* Dropdown options menu */}
+        <div className='absolute -right-6 top-24 select-none'>
+          <DropdownMenu menuOpen={optionsOpen} setInfoOpen={setInfoOpen} setOptionsOpen={setOptionsOpen} />
+        </div>
+
       </div>
 
       {/* Messages container */}
-      <div className="px-4 flex flex-col-reverse gap-2 w-full h-full overflow-y-auto">
-        <Message />
-        <Message />
-        <Message />
-        <Message />
+      <div className="px-4 pt-3 pb-4 flex flex-col gap-2 w-full h-full overflow-y-auto">
+        {messages.map((m) => (
+          <Message
+            key={m.id}
+            id={m.id}
+            open={open === m.id}
+            handleClick={handleClick}
+          />
+        ))}
       </div>
 
       {/* Chat footer */}
       <div className="flex-shrink-0 min-h-[5rem] w-full px-10 py-4 bg-slate-300 flex flex-row items-end gap-4">
         {/* Text input */}
-        <TextareaAutosize className="bg-slate-200 rounded-md py-3 px-4 flex-grow outline-none resize-none" onInput={handleInput}/>
+        <TextareaAutosize
+          className="bg-slate-200 rounded-md py-3 px-4 flex-grow outline-none resize-none"
+          placeholder="Type a message..."
+          maxRows={4}
+          onInput={handleInput}
+        />
         {/* Send button */}
         <div className="bg-slate-200 h-12 w-12 rounded-full relative cursor-pointer">
           <FontAwesomeIcon
