@@ -20,11 +20,11 @@ function Sidebar({ }: Props) {
   const [numRequests, setNumRequets] = useState(4);
 
   return (
-    <section className="w-[400px] bg-slate-100 flex flex-col h-screen flex-shrink-0">
+    <section className="w-[350px] bg-slate-100 flex flex-col h-screen flex-shrink-0">
       {/* Sidebar Header */}
       <div className="flex-shrink-0 w-full bg-slate-300 px-5 h-20 flex items-center">
         {/* Avatar */}
-        <div className="bg-slate-900 w-12 h-12 flex items-center justify-center rounded-full">
+        <div className="bg-slate-900 w-12 h-12 flex items-center justify-center rounded-full select-none">
           <img className="w-[90%] rounded-full" src={avatar} alt="" />
         </div>
 
@@ -41,7 +41,7 @@ function Sidebar({ }: Props) {
         >
           {/* Gear FA icon */}
           <FontAwesomeIcon
-            className={`transition-all ${menuOpen ? "rotate-0" : "rotate-180"}`}
+            className={`text-slate-600 transition-all ${menuOpen ? "rotate-0" : "rotate-180"}`}
             icon={faGear}
             size="xl"
           />
@@ -55,7 +55,7 @@ function Sidebar({ }: Props) {
         {/* // dark translucent BG wrapper */}
         <div
           className={`
-            absolute top-0 left-0 bg-black bg-opacity-50 w-full h-full flex flex-col items-center transition-all
+            absolute top-0 left-0 bg-black bg-opacity-50 w-full h-full flex flex-col items-center transition-all select-none
             ${menuOpen ? "z-10" : "-z-10 bg-transparent"}
           `}
         >
@@ -127,7 +127,7 @@ function Sidebar({ }: Props) {
         </div>
 
         {/* Tabs */}
-        <div className="relative mt-2 py-1.5 bg-slate-300 flex rounded-md">
+        <div className="relative mt-2 py-1.5 bg-slate-300 flex rounded-md select-none">
           {/* "Chats" text */}
           <p
             className="flex-1 text-center cursor-pointer font-semibold"
@@ -152,9 +152,10 @@ function Sidebar({ }: Props) {
           </div>
 
           <div
-            className={`top-8 left-[${
-              tab === "chats" ? "0%" : "50%"
-            }] absolute w-[50%] h-1 bg-black rounded-full transition-all`}
+            className={`
+              absolute top-8 w-[50%] h-1 bg-black rounded-full transition-all
+              ${tab === "chats" ? "left-0" : "left-[50%]"}
+            `}
           ></div>
         </div>
 
