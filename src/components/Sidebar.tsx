@@ -6,9 +6,13 @@ import Contact from './Contact'
 
 // Font Awesome
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowRightFromBracket, faGear, faMagnifyingGlass, faRightFromBracket, faUser } from '@fortawesome/free-solid-svg-icons';
+import { faArrowRightFromBracket, faGear, faMagnifyingGlass, faPlus, faRightFromBracket, faUser } from '@fortawesome/free-solid-svg-icons';
 import { faCommentDots } from '@fortawesome/free-regular-svg-icons';
 import Request from './Request';
+
+// Zustand
+import { useChatsStore } from '../zustand/chats-store';
+import Group from './Group';
 
 type Props = {}
 
@@ -18,6 +22,11 @@ function Sidebar({ }: Props) {
   const [toggle, setToggle] = useState(false);
   const [tab, setTab] = useState<'chats' | 'requests'>('chats');
   const [numRequests, setNumRequets] = useState(4);
+
+  // Fetch chats from zustand store
+  const chats = useChatsStore(state => state.chats);
+  const chatId = useChatsStore(state => state.currentChatId); 
+  const setChatId = useChatsStore(state => state.setCurrentChatId); 
 
   return (
     <section className="w-[350px] bg-slate-100 flex flex-col h-screen flex-shrink-0">
@@ -41,7 +50,9 @@ function Sidebar({ }: Props) {
         >
           {/* Gear FA icon */}
           <FontAwesomeIcon
-            className={`text-slate-600 transition-all ${menuOpen ? "rotate-0" : "rotate-180"}`}
+            className={`text-slate-600 transition-all ${
+              menuOpen ? "rotate-0" : "rotate-180"
+            }`}
             icon={faGear}
             size="xl"
           />
@@ -175,19 +186,42 @@ function Sidebar({ }: Props) {
               />
             </div>
 
-            {/* Contacts container */}
+            {/* Chatss container */}
             <div className="flex flex-col mt-3 gap-1 overflow-y-auto">
-              <Contact name="Contact A" handle="handle" />
-              <Contact name="Contact B" handle="handle" />
-              <Contact name="Contact C" handle="handle" />
-              <Contact name="Contact D" handle="handle" />
-              <Contact name="Contact E" handle="handle" />
-              <Contact name="Contact F" handle="handle" />
-              <Contact name="Contact G" handle="handle" />
-              <Contact name="Contact H" handle="handle" />
-              <Contact name="Contact I" handle="handle" />
-              <Contact name="Contact J" handle="handle" />
-              <Contact name="Contact K" handle="handle" />
+              {chats.map((chat) => {                                
+                return chat.type === "dm" ? (
+                  <Contact
+                    key={chat.id}
+                    name={chat.contact.name}
+                    handle={chat.contact.handle}
+                    chatId={chat.id}
+                  />
+                ) : (
+                  <Group
+                    key={chat.id}
+                    name={chat.name}
+                    members={chat.members.length}
+                    chatId={chat.id}
+                  />
+                );
+              })}
+
+
+              {/* Add chat button */}
+              <div
+                className="group px-3 py-2 w-full flex items-center gap-3 hover:bg-slate-400 hover:bg-opacity-20 rounded-lg cursor-pointer"              
+              >
+                {/* Avatar */}
+                <div className="w-14 h-14 rounded-full bg-slate-300 group-hover:bg-slate-400 flex items-center justify-center">
+                  <FontAwesomeIcon className='text-slate-600 group-hover:text-slate-200' icon={faPlus} size="lg"/>
+                </div>
+
+                {/* Group Name */}
+                <div className="flex flex-col">
+                  <h3 className="font-normal text-xl">Add chat</h3>
+                </div>
+              </div>
+  
             </div>
           </>
         )}
