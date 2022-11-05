@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { Dispatch, SetStateAction, useState } from "react";
 import avatar from "../assets/avatar.jpeg";
 
 // Font Awesome
@@ -10,15 +10,36 @@ import {
   faTrash,
   IconDefinition,
 } from "@fortawesome/free-solid-svg-icons";
+import { UserType } from "../data";
+import { useInfoStore } from "../zustand/info-panel-store";
 
+
+interface MenuLineProps {
+  text: string;
+  icon: IconDefinition;
+  danger?: boolean;
+  onClickArgs?: any;
+  onClick?: (args: any) => any;
+  setOpen?: Dispatch<SetStateAction<string | null>>;
+}
 
 // A line inside the dropdown menu
-function MenuLine({text, icon, danger = false} : {text:string, icon: IconDefinition, danger?: boolean}) {
+function MenuLine({text, icon, danger = false, onClickArgs, onClick = () => {}, setOpen = () => {}} : MenuLineProps) {
   return (
-    <div className={`flex w-full justify-between px-2 py-1.5 rounded-md cursor-pointer hover:bg-slate-400 hover:bg-opacity-30 ${danger ? 'mt-2' : ''}`}>
-      <p className={danger ? "text-red-500 font-semibold" : ''}>{text}</p>
+    <div
+      className={`flex w-full justify-between px-2 py-1.5 rounded-md cursor-pointer hover:bg-slate-400 hover:bg-opacity-30 ${
+        danger ? "mt-2" : ""
+      }`}
+      onClick={() => {
+        onClick(onClickArgs);
+        setOpen(null);
+      }}
+    >
+      <p className={danger ? "text-red-500 font-semibold" : ""}>{text}</p>
       <FontAwesomeIcon
-        className={`w-6 text-center ${danger ? 'text-red-500 font-semibold' : ''}`}
+        className={`w-6 text-center ${
+          danger ? "text-red-500 font-semibold" : ""
+        }`}
         icon={icon}
         size="lg"
       />
@@ -26,17 +47,31 @@ function MenuLine({text, icon, danger = false} : {text:string, icon: IconDefinit
   );
 }
 
+
+interface DropdownMenuProps {
+  menuOpen: boolean;
+  setOpen: Dispatch<SetStateAction<string | null>>;
+  sender: UserType;
+  showInfo: (user: UserType) => void;
+}
+
 // The message's dropdown menu
-function DropdownMenu({menuOpen} : {menuOpen: boolean}) {
+function DropdownMenu({menuOpen, setOpen, sender, showInfo} : DropdownMenuProps) {
   return (
     <div
       className={`
         absolute -top-2 right-14 px-2 py-2 w-52 bg-slate-300 rounded-md flex flex-col gap-1 transition-all select-none
-        ${menuOpen ? '-top-2' : '-z-10 -top-4'}
+        ${menuOpen ? "z-10 -top-2" : "-z-10 -top-6"}
       `}
     >
       <MenuLine text="Copy content" icon={faClipboard} />
-      <MenuLine text="Sender info" icon={faCircleInfo} />
+      <MenuLine
+        text="Sender info"
+        icon={faCircleInfo}
+        onClickArgs={sender}
+        onClick={showInfo}
+        setOpen={setOpen}
+      />
       <MenuLine text="Delete message" icon={faTrash} danger />
     </div>
   );
@@ -44,12 +79,17 @@ function DropdownMenu({menuOpen} : {menuOpen: boolean}) {
 
 
 interface Props {
-  id: number
+  id: string;
+  content: string;
+  sender: UserType;
   open: boolean;
-  handleClick: (id: number) => void;
+  setOpen: Dispatch<SetStateAction<string | null>>
+  handleClick: (id: string) => void;
 }
 
-function Message({id, open, handleClick}: Props) {
+function Message({ id, open, setOpen, sender, content, handleClick }: Props) {
+  
+  const showUserInfo = useInfoStore(state => state.showUserInfo);
 
   return (
     <div
@@ -60,23 +100,13 @@ function Message({id, open, handleClick}: Props) {
     >
       {/* User Avatar */}
       <div className="bg-slate-900 w-12 h-12 flex items-center justify-center rounded-full select-none">
-        <img className="w-[90%] rounded-full" src={avatar} alt="" />
+        <img className="w-[90%] rounded-full" src={sender.pfp_url} alt="" />
       </div>
 
       {/* Messsage content */}
       <div className="flex flex-col">
-        <h3 className="font-semibold text-xl text-orange-500">
-          Lucca Rodrigues
-        </h3>
-        <p className="">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vitae
-          dictum sem. Pellentesque sollicitudin dictum quam, eget consequat
-          lorem efficitur auctor. Sed pretium ipsum vel congue aliquam. Nulla
-          scelerisque vestibulum diam, quis consectetur ipsum lacinia eu.
-          Praesent luctus dolor vitae lectus ultricies, non scelerisque odio
-          iaculis. Ut diam est, vulputate vel eros eu, sodales dignissim sem.
-          Sed eget suscipit felis, volutpat scelerisque neque.
-        </p>
+        <h3 className="font-semibold text-xl text-blue-900">{sender.name}</h3>
+        <p className="">{content}</p>
       </div>
 
       {/* Options menu button */}
@@ -93,7 +123,12 @@ function Message({id, open, handleClick}: Props) {
 
       {/* Dropdown menu */}
       {/* TODO: finish this component!!! */}
-      <DropdownMenu menuOpen={open} />
+      <DropdownMenu
+        menuOpen={open}
+        setOpen={setOpen}
+        sender={sender}
+        showInfo={showUserInfo}
+      />
     </div>
   );
 }
