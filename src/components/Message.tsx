@@ -12,26 +12,27 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { UserType } from "../data";
 import { useInfoStore } from "../zustand/info-panel-store";
+import { useChatsStore } from "../zustand/chats-store";
 
 
 interface MenuLineProps {
   text: string;
   icon: IconDefinition;
   danger?: boolean;
-  onClickArgs?: any;
-  onClick?: (args: any) => any;
+  onClickArgs?: any[];
+  onClick?: (...args: any) => any;
   setOpen?: Dispatch<SetStateAction<string | null>>;
 }
 
 // A line inside the dropdown menu
-function MenuLine({text, icon, danger = false, onClickArgs, onClick = () => {}, setOpen = () => {}} : MenuLineProps) {
+function MenuLine({text, icon, danger = false, onClickArgs = [], onClick = () => {}, setOpen = () => {}} : MenuLineProps) {
   return (
     <div
       className={`flex w-full justify-between px-2 py-1.5 rounded-md cursor-pointer hover:bg-slate-400 hover:bg-opacity-30 ${
         danger ? "mt-2" : ""
       }`}
       onClick={() => {
-        onClick(onClickArgs);
+        onClick(...onClickArgs);
         setOpen(null);
       }}
     >
@@ -49,14 +50,17 @@ function MenuLine({text, icon, danger = false, onClickArgs, onClick = () => {}, 
 
 
 interface DropdownMenuProps {
+  chatId: string;
+  messageId: string;
   menuOpen: boolean;
   setOpen: Dispatch<SetStateAction<string | null>>;
   sender: UserType;
   showInfo: (user: UserType) => void;
+  deleteMessage: (chatId: string, messageId: string) => void;
 }
 
 // The message's dropdown menu
-function DropdownMenu({menuOpen, setOpen, sender, showInfo} : DropdownMenuProps) {
+function DropdownMenu({chatId, messageId, menuOpen, setOpen, sender, showInfo, deleteMessage} : DropdownMenuProps) {
   return (
     <div
       className={`
@@ -68,18 +72,25 @@ function DropdownMenu({menuOpen, setOpen, sender, showInfo} : DropdownMenuProps)
       <MenuLine
         text="Sender info"
         icon={faCircleInfo}
-        onClickArgs={sender}
+        onClickArgs={[sender]}
         onClick={showInfo}
         setOpen={setOpen}
       />
-      <MenuLine text="Delete message" icon={faTrash} danger />
+      <MenuLine
+        text="Delete message"
+        icon={faTrash}
+        danger
+        onClick={deleteMessage}
+        onClickArgs={[chatId, messageId]}
+      />
     </div>
   );
 }
 
 
 interface Props {
-  id: string;
+  chatId: string;
+  messageId: string;
   content: string;
   sender: UserType;
   open: boolean;
@@ -87,9 +98,10 @@ interface Props {
   handleClick: (id: string) => void;
 }
 
-function Message({ id, open, setOpen, sender, content, handleClick }: Props) {
+function Message({ chatId, messageId, open, setOpen, sender, content, handleClick }: Props) {
   
   const showUserInfo = useInfoStore(state => state.showUserInfo);
+  const deleteMessage = useChatsStore(state => state.deleteMessage);
 
   return (
     <div
@@ -115,7 +127,7 @@ function Message({ id, open, setOpen, sender, content, handleClick }: Props) {
           absolute -top-2 right-4 group-hover:flex w-8 h-8 rounded-lg bg-slate-300 items-center justify-center cursor-pointer hover:brightness-95
           ${open ? "flex brightness-95" : "hidden"}
         `}
-        onClick={() => handleClick(id)}
+        onClick={() => handleClick(messageId)}
       >
         {/* Ellipsis icon */}
         <FontAwesomeIcon className="text-slate-500" icon={faEllipsisH} />
@@ -124,10 +136,13 @@ function Message({ id, open, setOpen, sender, content, handleClick }: Props) {
       {/* Dropdown menu */}
       {/* TODO: finish this component!!! */}
       <DropdownMenu
+        chatId={chatId}
+        messageId={messageId}
         menuOpen={open}
         setOpen={setOpen}
         sender={sender}
         showInfo={showUserInfo}
+        deleteMessage={deleteMessage}
       />
     </div>
   );
