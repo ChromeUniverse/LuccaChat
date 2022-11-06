@@ -203,7 +203,8 @@ function Chat() {
         {messages.map((m) => (
           <Message
             key={m.id}
-            id={m.id}
+            chatId={chatId}
+            messageId={m.id}
             sender={m.sender}
             content={m.content}
             open={open === m.id}
