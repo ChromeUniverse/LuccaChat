@@ -10,11 +10,15 @@ interface Props {
 
 function Contact({ name, handle, chatId}: Props) {
   
+  const currentChatId = useChatsStore(state => state.currentChatId);
   const setChatId = useChatsStore(state => state.setCurrentChatId);
 
   return (
     <div
-      className="px-3 py-2 w-full flex items-center gap-3 hover:bg-slate-400 hover:bg-opacity-20 rounded-lg cursor-pointer"
+      className={`
+        px-3 py-2 w-full flex items-center gap-3 hover:bg-slate-200 rounded-lg cursor-pointer
+        ${chatId === currentChatId ? 'bg-slate-200' : ''}
+      `}
       onClick={() => {
         if (chatId) setChatId(chatId);
       }}
