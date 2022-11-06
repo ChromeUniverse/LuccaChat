@@ -13,6 +13,7 @@ import Request from './Request';
 // Zustand
 import { useChatsStore } from '../zustand/chats-store';
 import Group from './Group';
+import { useModalStore } from '../zustand/modals-store';
 
 type Props = {}
 
@@ -27,6 +28,9 @@ function Sidebar({ }: Props) {
   const chats = useChatsStore(state => state.chats);
   const chatId = useChatsStore(state => state.currentChatId); 
   const setChatId = useChatsStore(state => state.setCurrentChatId); 
+
+  // Modal controls
+  const setModalState = useModalStore(state => state.setModalState);
 
   return (
     <section className="w-[350px] bg-slate-100 flex flex-col h-screen flex-shrink-0">
@@ -186,7 +190,7 @@ function Sidebar({ }: Props) {
               />
             </div>
 
-            {/* Chatss container */}
+            {/* Chats container */}
             <div className="flex flex-col mt-3 gap-1 overflow-y-auto">
               {chats.map((chat) => {                                
                 return chat.type === "dm" ? (
@@ -209,7 +213,8 @@ function Sidebar({ }: Props) {
 
               {/* Add chat button */}
               <div
-                className="group px-3 py-2 w-full flex items-center gap-3 hover:bg-slate-400 hover:bg-opacity-20 rounded-lg cursor-pointer"              
+                className="group px-3 py-2 w-full flex items-center gap-3 hover:bg-slate-200 rounded-lg cursor-pointer"
+                onClick={() => setModalState('add-chat')}
               >
                 {/* Avatar */}
                 <div className="w-14 h-14 rounded-full bg-slate-300 group-hover:bg-slate-400 flex items-center justify-center">
