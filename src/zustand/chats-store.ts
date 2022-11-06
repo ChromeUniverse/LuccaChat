@@ -55,7 +55,7 @@ const user5: UserType = {
 const sampleMessage1: MessageType = {
   id: nanoid(),
   sender: user1,
-  content: "lorep ipsum? more like deez nuts lmao",
+  content: "lorem ipsum? yeah right lmao, no lorem upsum here bro 🤪",
 };
 
 const sampleMessage2: MessageType= {
@@ -99,7 +99,7 @@ interface State {
   setInputBuffer: (chatId: string, newInput: string) => void;
   fetchMessages: (chat: string) => MessageType[];
   addMessage: (chatId: string, messageContent: string) => void;
-  removeMessage: (chatId: string, messageId: string) => void;
+  deleteMessage: (chatId: string, messageId: string) => void;
 }
 
 export const useChatsStore = create<State>()(
@@ -166,8 +166,24 @@ export const useChatsStore = create<State>()(
       },
 
 
-      removeMessage: (chatId: string, messageId: string) => {
-        set((state) => ({ ...state, chats: [...get().chats] }));
+      deleteMessage: (chatId: string, messageId: string) => {
+
+        set((state) => {
+          // console.log('did we even get this far?');        
+          const chats = get().chats;
+          const targetChatIndex = chats.findIndex((c) => c.id === chatId);
+          const targetChat= chats[targetChatIndex];
+          const filteredMessages = targetChat.messages.filter(m => m.id !== messageId);
+          
+          return {
+            ...state,
+            chats: [
+              ...chats.slice(0, targetChatIndex),
+              { ...targetChat, messages: filteredMessages },
+              ...chats.slice(targetChatIndex + 1),
+            ],
+          };
+        });
       },
     }),
     {
