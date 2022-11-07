@@ -131,7 +131,8 @@ function Chat() {
   }
 
   function handleClick(id: string): void {
-    return open === id ? setOpen(null) : setOpen(id);
+    open === id ? setOpen(null) : setOpen(id);
+    setOptionsOpen(false);
   }  
 
 
@@ -147,9 +148,13 @@ function Chat() {
     <main className="flex flex-col bg-slate-200 h-screen w-full overflow-x-hidden">
       {/* Chat Header */}
       <div className="relative w-full bg-slate-300 pl-5 pr-8 h-20 flex items-center flex-shrink-0">
-        {/* Avatar */}
+        {/* Chat profile picture */}
         <div className="bg-slate-900 w-12 h-12 flex flex-shrink-0 items-center justify-center rounded-full select-none">
-          <img className="w-[90%] rounded-full" src={chat.type === 'dm' ? avatar : creeper} alt="" />
+          <img
+            className="w-[90%] rounded-full"
+            src={chat.type === "dm" ? chat.contact.pfp_url : chat.group_pfp_url}
+            alt=""
+          />
         </div>
 
         {/* Name */}
@@ -177,7 +182,10 @@ function Chat() {
             ml-auto w-12 h-12 flex items-center bg-slate-300 justify-center rounded-xl cursor-pointer hover:brightness-90
             ${optionsOpen ? "brightness-90" : ""}
           `}
-          onClick={() => setOptionsOpen((prev) => !prev)}
+          onClick={() => {
+            setOpen(null);
+            setOptionsOpen((prev) => !prev);
+          }}
         >
           <FontAwesomeIcon
             className="text-slate-600"
@@ -191,7 +199,7 @@ function Chat() {
           <DropdownMenu
             chatType={chat.type}
             menuOpen={optionsOpen}
-            infoData={chat.type === 'dm' ? chat.contact : chat}
+            infoData={chat.type === "dm" ? chat.contact : chat}
             showInfo={chat.type === "dm" ? showUserInfo : showGroupInfo}
             setOptionsOpen={setOptionsOpen}
           />
