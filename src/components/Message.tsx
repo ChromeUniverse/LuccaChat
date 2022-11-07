@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction, useState } from "react";
+import React, { Dispatch, SetStateAction, useContext, useState } from "react";
 import avatar from "../assets/avatar.jpeg";
 
 // Font Awesome
@@ -13,6 +13,7 @@ import {
 import { UserType } from "../data";
 import { useInfoStore } from "../zustand/info-panel-store";
 import { useChatsStore } from "../zustand/chats-store";
+import { AuthContext } from "../App";
 
 
 interface MenuLineProps {
@@ -60,7 +61,10 @@ interface DropdownMenuProps {
 }
 
 // The message's dropdown menu
-function DropdownMenu({chatId, messageId, menuOpen, setOpen, sender, showInfo, deleteMessage} : DropdownMenuProps) {
+function DropdownMenu({ chatId, messageId, menuOpen, setOpen, sender, showInfo, deleteMessage }: DropdownMenuProps) {
+  
+  const currentUser = useContext(AuthContext);
+
   return (
     <div
       className={`
@@ -69,20 +73,24 @@ function DropdownMenu({chatId, messageId, menuOpen, setOpen, sender, showInfo, d
       `}
     >
       <MenuLine text="Copy content" icon={faClipboard} />
-      <MenuLine
-        text="Sender info"
-        icon={faCircleInfo}
-        onClickArgs={[sender]}
-        onClick={showInfo}
-        setOpen={setOpen}
-      />
-      <MenuLine
-        text="Delete message"
-        icon={faTrash}
-        danger
-        onClick={deleteMessage}
-        onClickArgs={[chatId, messageId]}
-      />
+      {sender.id !== currentUser.id && (
+        <MenuLine
+          text="Sender info"
+          icon={faCircleInfo}
+          onClickArgs={[sender]}
+          onClick={showInfo}
+          setOpen={setOpen}
+        />
+      )}
+      {sender.id === currentUser.id && (
+        <MenuLine
+          text="Delete message"
+          icon={faTrash}
+          danger
+          onClick={deleteMessage}
+          onClickArgs={[chatId, messageId]}
+        />
+      )}
     </div>
   );
 }
@@ -94,7 +102,7 @@ interface Props {
   content: string;
   sender: UserType;
   open: boolean;
-  setOpen: Dispatch<SetStateAction<string | null>>
+  setOpen: Dispatch<SetStateAction<string | null>>;
   handleClick: (id: string) => void;
 }
 
