@@ -7,17 +7,18 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 // Zustand
 import { useModalStore } from "../../zustand/modals-store";
+import { useChatsStore } from "../../zustand/chats-store";
 
 type Props = {};
 
 function CreateGroup({}: Props) {
   const setModalState = useModalStore((state) => state.setModalState);
 
+  const createNewGroup = useChatsStore(state => state.createNewGroup);
+
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [isPublic, setIsPublic] = useState(false);
-
-  type formInputFields = "name" | "description";
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setName(e.target.value);
@@ -27,7 +28,9 @@ function CreateGroup({}: Props) {
     setDescription(e.currentTarget.value);
   }
 
-  function handleClick() {    
+  function handleClick() {
+    createNewGroup(name, description, isPublic);
+    setModalState(null);
   }
 
   return (
