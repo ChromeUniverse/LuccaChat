@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useContext } from 'react'
 
 // Dummy pictures
 import avatar from "../assets/avatar.jpeg";
@@ -15,6 +15,8 @@ import { faBan, faXmark, IconDefinition } from '@fortawesome/free-solid-svg-icon
 // Zustand store
 import { useInfoStore } from '../zustand/info-panel-store';
 import { GroupType, UserType } from '../data';
+import { AuthContext } from '../App';
+import { useChatsStore } from '../zustand/chats-store';
 
 function FooterMenuLine({text, icon}: {text:string, icon: IconDefinition}) {
   return (
@@ -24,6 +26,12 @@ function FooterMenuLine({text, icon}: {text:string, icon: IconDefinition}) {
     </div>
   );
 }
+
+// helper function
+function formatDate(date: Date) {
+  return date.toLocaleDateString('default', {month: 'short', day: 'numeric', year: 'numeric'});
+}
+
 
 interface Props {
   type: 'user' | 'group';
@@ -40,6 +48,14 @@ function InfoPanel({ type, user, group }: Props) {
   if (type === 'group' && !group) throw new Error(`Info panel is of type "group" but received no group object!`);
   
   const closeInfo = useInfoStore(state => state.closeInfo);
+
+  // get current chat data
+  const getCurrentChat = useChatsStore(state => state.getCurrentChat);
+  const currentChat = getCurrentChat();
+
+  // Prevents user from accessing info panel about themselves
+  const currentUser = useContext(AuthContext);
+  if (userData !== undefined && userData.id === currentUser.id) throw new Error("Currently auth'd user shouldn't be able to view info about themselves!!");
 
   return (
     <div className="w-[330px] h-screen flex-shrink-0 bg-slate-100 flex flex-col items-center">
@@ -67,14 +83,15 @@ function InfoPanel({ type, user, group }: Props) {
               <p className="text-2xl font-semibold">{groupData.name}</p>
               {/* <p className="text-md">{groupData.members.length} members</p> */}
               <p className="text-sm text-center">
-                Created by <span className="font-bold">@lucca</span> on Oct.
-                25th, 2022
+                Created by{" "}
+                <span className="font-bold">@{groupData.createdBy.handle}</span>{" "}
+                on {formatDate(groupData.createdAt)}
               </p>
             </div>
 
             {/* Group description */}
-            <div className='px-4 w-full pt-2'>
-              <p className='font-semibold'>Description</p>
+            <div className="px-4 w-full pt-2">
+              <p className="font-semibold">Description</p>
               <p>{groupData.description}</p>
             </div>
 
@@ -109,10 +126,23 @@ function InfoPanel({ type, user, group }: Props) {
             </div>
 
             {/* Footer menu */}
-            <div className="mt-auto px-4 py-5 w-full flex flex-col gap-1">
-              <FooterMenuLine text={`Kick ${userData.name}`} icon={faXmark} />
-              <FooterMenuLine text={`Ban ${userData.name}`} icon={faBan} />
-            </div>
+
+            {/* 
+              Only shows "Kick"/"Ban" buttons if current user:
+              1. is viewing a "group" chat
+              2. is the creator of the group
+            */}
+
+            {currentChat.type === "group" &&
+              currentChat.createdBy.id === currentUser.id && (
+                <div className="mt-auto px-4 py-5 w-full flex flex-col gap-1">
+                  <FooterMenuLine
+                    text={`Kick ${userData.name}`}
+                    icon={faXmark}
+                  />
+                  <FooterMenuLine text={`Ban ${userData.name}`} icon={faBan} />
+                </div>
+              )}
           </>
         )}
       </div>
