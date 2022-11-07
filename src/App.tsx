@@ -12,6 +12,7 @@ import { useInfoStore } from './zustand/info-panel-store';
 import { GroupType, UserType } from "./data";
 import { useModalStore } from "./zustand/modals-store";
 import AddFriend from "./components/modals/AddFriend";
+import CreateGroup from "./components/modals/CreateGroup";
 
 function App() {
 
@@ -29,6 +30,7 @@ function App() {
           <div className="absolute z-10 bg-slate-900 w-full h-full opacity-80"></div>
           {modalState === 'add-chat' && <AddChat />}
           {modalState === 'add-friend' && <AddFriend />}
+          {modalState === 'create-group' && <CreateGroup />}          
         </div>
       )}
 

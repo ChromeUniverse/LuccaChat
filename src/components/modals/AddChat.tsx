@@ -32,7 +32,7 @@ function Card({ description, imgSrc, btnText, nextModal }: CardProps) {
       {/* Card button */}
       <button
         className="bg-slate-400 text-slate-100 text-lg w-full py-3 rounded-full text-center font-semibold outline-none hover:bg-slate-500"
-        onClick={() => setModalState('add-friend')}
+        onClick={() => setModalState(nextModal)}
       >
         {btnText}
       </button>

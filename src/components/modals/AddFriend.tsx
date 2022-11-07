@@ -57,7 +57,7 @@ function AddFriend() {
           {/* handle input */}
           <input
             className="w-full py-3 bg-transparent outline-none"
-            placeholder="handle"
+            placeholder="my_awesome_handle"
             type="text"
             value={input}
             onChange={handleChange}
