@@ -8,12 +8,18 @@ import Contact from './Contact'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRightFromBracket, faGear, faMagnifyingGlass, faPlus, faRightFromBracket, faUser } from '@fortawesome/free-solid-svg-icons';
 import { faCommentDots } from '@fortawesome/free-regular-svg-icons';
-import Request from './Request';
+import { RequestType } from '../zustand/requests-store';
 
 // Zustand
 import { useChatsStore } from '../zustand/chats-store';
 import Group from './Group';
 import { useModalStore } from '../zustand/modals-store';
+import { useRequestsStore } from '../zustand/requests-store';
+import Request from './Request';
+
+const Divider = () => {
+  return <hr className="bg-black border-none w-full h-[0.1rem] rounded-full" />
+}
 
 type Props = {}
 
@@ -22,12 +28,13 @@ function Sidebar({ }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [toggle, setToggle] = useState(false);
   const [tab, setTab] = useState<'chats' | 'requests'>('chats');
-  const [numRequests, setNumRequets] = useState(4);
 
-  // Fetch chats from zustand store
+  // Fetch chats, sort by latest first
   const chats = useChatsStore(state => state.chats);
-  const chatId = useChatsStore(state => state.currentChatId); 
-  const setChatId = useChatsStore(state => state.setCurrentChatId); 
+  const sortedChats = chats.sort((c1, c2) => c2.latest.getTime() - c1.latest.getTime());
+
+  // Fetch requests
+  const requests = useRequestsStore(state => state.requests);
 
   // Modal controls
   const setModalState = useModalStore(state => state.setModalState);
@@ -90,14 +97,17 @@ function Sidebar({ }: Props) {
             </div>
 
             {/* Divider */}
-            <hr className="bg-black border-none w-full h-[0.1rem] rounded-full" />
+            <Divider />
 
             {/* Dark mode toggle */}
             <div className="flex justify-between items-center">
               <p className="font-semibold text-xl">Dark mode</p>
               {/* Toggle */}
               <div
-                className="h-8 w-16 bg-slate-400 rounded-full relative cursor-pointer"
+                className={`
+                  h-8 w-16 rounded-full relative cursor-pointer transition-all
+                  ${toggle ? 'bg-blue-400' : 'bg-slate-400'}
+                `}
                 onClick={() => setToggle((prev) => !prev)}
               >
                 {/* Slider */}
@@ -111,7 +121,7 @@ function Sidebar({ }: Props) {
             </div>
 
             {/* Divider */}
-            <hr className="bg-black border-none w-full h-[0.1rem] rounded-full" />
+            <Divider />
 
             {/* Accent color selector */}
             <div className="flex flex-col justify-between gap-3">
@@ -127,7 +137,7 @@ function Sidebar({ }: Props) {
             </div>
 
             {/* Divider */}
-            <hr className="bg-black border-none w-full h-[0.1rem] rounded-full" />
+            <Divider />
 
             {/* Log out */}
             <div className="flex justify-between items-center">
@@ -159,16 +169,16 @@ function Sidebar({ }: Props) {
             {/* Text */}
             <p className="font-semibold">Requests</p>
             {/* Badge */}
-            {numRequests !== 0 && (
+            {requests.length !== 0 && (
               <div className="bg-slate-400 w-6 h-6 rounded-full flex items-center justify-center">
-                <p className="font-bold text-sm text-white">{numRequests}</p>
+                <p className="font-bold text-sm text-white">{requests.length}</p>
               </div>
             )}
           </div>
 
           <div
             className={`
-              absolute top-8 w-[50%] h-1 bg-black rounded-full transition-all
+              absolute top-8 w-[50%] h-1 bg-slate-500 rounded-full transition-all
               ${tab === "chats" ? "left-0" : "left-[50%]"}
             `}
           ></div>
@@ -192,12 +202,11 @@ function Sidebar({ }: Props) {
 
             {/* Chats container */}
             <div className="flex flex-col mt-3 gap-1 overflow-y-auto">
-              {chats.map((chat) => {                                
+              {sortedChats.map((chat) => {
                 return chat.type === "dm" ? (
                   <Contact
                     key={chat.id}
-                    name={chat.contact.name}
-                    handle={chat.contact.handle}
+                    user={chat.contact}
                     chatId={chat.id}
                   />
                 ) : (
@@ -210,15 +219,18 @@ function Sidebar({ }: Props) {
                 );
               })}
 
-
               {/* Add chat button */}
               <div
                 className="group px-3 py-2 w-full flex items-center gap-3 hover:bg-slate-200 rounded-lg cursor-pointer"
-                onClick={() => setModalState('add-chat')}
+                onClick={() => setModalState("add-chat")}
               >
                 {/* Avatar */}
                 <div className="w-14 h-14 rounded-full bg-slate-300 group-hover:bg-slate-400 flex items-center justify-center">
-                  <FontAwesomeIcon className='text-slate-600 group-hover:text-slate-200' icon={faPlus} size="lg"/>
+                  <FontAwesomeIcon
+                    className="text-slate-600 group-hover:text-slate-200"
+                    icon={faPlus}
+                    size="lg"
+                  />
                 </div>
 
                 {/* Group Name */}
@@ -226,7 +238,6 @@ function Sidebar({ }: Props) {
                   <h3 className="font-normal text-xl">Add chat</h3>
                 </div>
               </div>
-  
             </div>
           </>
         )}
@@ -235,9 +246,9 @@ function Sidebar({ }: Props) {
         {tab === "requests" && (
           // Requests container
           <div className="mt-4 px-2 w-full flex flex-col gap-4">
-            <Request name="Lucca Rodrigues" />
-            <Request name="Lucca Rodrigues" />
-            <Request name="Lucca Rodrigues" />
+            {requests.map((r) => (
+              <Request request={r} />
+            ))}
           </div>
         )}
       </div>
