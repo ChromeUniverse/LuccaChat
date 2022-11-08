@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 
 // Test photo
 import creeper from '../assets/creeper.webp'
@@ -16,6 +16,7 @@ import { faArrowRightFromBracket, faCircleInfo, faEllipsisV, faGear, faPaperPlan
 import { useInfoStore } from '../zustand/info-panel-store';
 import { useChatsStore } from '../zustand/chats-store';
 import { ChatType, DMType, GroupType, UserType } from '../data';
+import { AuthContext } from '../App';
 
 
 type MenuLineProps = {
@@ -49,15 +50,19 @@ function MenuLine({text, icon, danger = false, onClickArgs, onClick = () => {}, 
 }
 
 type DropdownMenuProps = {
-  chatType: 'dm' | 'group';
+  chat: GroupType | DMType;
   menuOpen: boolean;
   infoData: UserType | GroupType;
   showInfo: ((group: GroupType) => void) | ((user: UserType) => void);
   setOptionsOpen: (value: boolean) => void;
 };
 
-// The message's dropdown menu
-function DropdownMenu({chatType, menuOpen, infoData, showInfo, setOptionsOpen} : DropdownMenuProps) {
+// Chat option dropdown menu
+function DropdownMenu({ chat, menuOpen, infoData, showInfo, setOptionsOpen }: DropdownMenuProps) {
+
+  const currentChat = useChatsStore(state => state.getCurrentChat);
+  const currentUser = useContext(AuthContext);
+
   return (
     <div
       className={`
@@ -65,7 +70,7 @@ function DropdownMenu({chatType, menuOpen, infoData, showInfo, setOptionsOpen} :
         ${menuOpen ? "z-20 -top-2" : "-z-10 -top-4"}
       `}
     >
-      {chatType === "group" && (
+      {chat.type === "group" && (
         <>
           <MenuLine
             text="Group info"
@@ -74,12 +79,12 @@ function DropdownMenu({chatType, menuOpen, infoData, showInfo, setOptionsOpen} :
             onClickArgs={infoData}
             setOptionsOpen={setOptionsOpen}
           />
-          <MenuLine text="Group settings" icon={faGear} />
+          {chat.createdBy.id === currentUser.id && <MenuLine text="Group settings" icon={faGear} />}
           <MenuLine text="Mute group" icon={faVolumeXmark} />
           <MenuLine text="Leave group" icon={faArrowRightFromBracket} danger />
         </>
       )}
-      {chatType === "dm" && (
+      {chat.type === "dm" && (
         <>
           <MenuLine
             text="Contact info"
@@ -96,7 +101,6 @@ function DropdownMenu({chatType, menuOpen, infoData, showInfo, setOptionsOpen} :
 }
 
 function Chat() {
-
 
   // Info panel
   const showGroupInfo = useInfoStore(state => state.showGroupInfo);
@@ -197,7 +201,7 @@ function Chat() {
         {/* Dropdown options menu */}
         <div className="absolute -right-6 top-24 select-none">
           <DropdownMenu
-            chatType={chat.type}
+            chat={chat}
             menuOpen={optionsOpen}
             infoData={chat.type === "dm" ? chat.contact : chat}
             showInfo={chat.type === "dm" ? showUserInfo : showGroupInfo}
