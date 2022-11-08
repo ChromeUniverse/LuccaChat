@@ -15,7 +15,7 @@ export const user: UserType = {
   handle: "lucca",
 };
 
-const user1: UserType = {
+export const user1: UserType = {
   id: "1",
   pfp_url: avatar,
   name: "User 1",
@@ -78,10 +78,11 @@ const sampleChat1: GroupType = {
   type: "group",
   group_pfp_url: creeper,
   createdAt: new Date(),
-  createdBy: user,
+  createdBy: user1,
   isPublic: false,
   name: "Pessoal 2.0",
   description: "A very cool group",
+  latest: new Date(),
   messages: [sampleMessage1],
   inputBuffer: "",
   members: [user, user1, user2, user3, user4, user5],
@@ -91,6 +92,7 @@ const sampleChat2: DMType = {
   id: "2",
   type: "dm",
   contact: user2,
+  latest: new Date(),
   messages: [sampleMessage2, sampleMessage3],
   inputBuffer: "",
 };
@@ -122,6 +124,7 @@ export const useChatsStore = create<State>()(
 
         const newGroup: GroupType = {
           id: nanoid(),
+          latest: new Date(),
           messages: [],
           inputBuffer: '',
           type: 'group',
@@ -190,7 +193,11 @@ export const useChatsStore = create<State>()(
             ...state,
             chats: [
               ...chats.slice(0, targetChatIndex),
-              { ...targetChat, messages: [...targetChat.messages, newMsg] },
+              {
+                ...targetChat,
+                latest: new Date(),
+                messages: [...targetChat.messages, newMsg],
+              },
               ...chats.slice(targetChatIndex + 1),
             ],
           };
