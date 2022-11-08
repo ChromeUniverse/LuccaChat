@@ -58,7 +58,7 @@ function InfoPanel({ type, user, group }: Props) {
   if (userData !== undefined && userData.id === currentUser.id) throw new Error("Currently auth'd user shouldn't be able to view info about themselves!!");
 
   return (
-    <div className="w-[330px] h-screen flex-shrink-0 bg-slate-100 flex flex-col items-center">
+    <div className="w-[360px] h-screen flex-shrink-0 bg-slate-100 flex flex-col items-center">
       {/* Header */}
       <div className="flex-shrink-0 h-20 w-full bg-slate-300 flex items-center gap-4 pl-5">
         <FontAwesomeIcon
@@ -90,18 +90,25 @@ function InfoPanel({ type, user, group }: Props) {
             </div>
 
             {/* Group description */}
-            <div className="px-4 w-full pt-2">
+            <div className="px-6 w-full pt-2">
               <p className="font-semibold">Description</p>
               <p>{groupData.description}</p>
             </div>
 
             {/* List of members */}
-            <div className="px-4 mb-8 w-full flex flex-col mt-2">
+            <div className="px-6 mb-8 w-full flex flex-col mt-2">
+
+              {/* Section title */}
               <p className="font-semibold py-2">
                 {groupData.members.length} members
               </p>
-              {groupData.members.map((m) => (
-                <Contact name={m.name} handle={m.handle} />
+
+              {/* Group creator */}
+              <Contact user={groupData.createdBy} highlight/>
+              
+              {/* Other group members */}
+              {groupData.members.filter(m => m.id !== groupData.createdBy.id).map((m) => (
+                <Contact user={m} />
               ))}
             </div>
           </>
