@@ -15,6 +15,7 @@ export interface MessageType {
 export interface ChatType {
   id: string;
   // type: "dm" | "group";
+  latest: Date;
   messages: MessageType[];
   inputBuffer: string;
 }
