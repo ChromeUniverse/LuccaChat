@@ -3,6 +3,7 @@
 ## Design
 
 ### General
+- [ ] IMPLEMENT A DAMN COLOR SCHEME
 - [ ] Public group browser
 
 ### Modals
@@ -13,12 +14,20 @@
 
 ## Frontend
 
+### UI Components
+- [ ] Group creation modal
+  - [ ] Profile image upload
+
+### Logic
 - [ ] Improve x-padding on info panel
-- [ ] Order chats in sidebar by latest message
-- [ ] Send mock request when adding friend
+- [x] ~~Order chats in sidebar by latest message~~
+- [x] ~~Send mock request when adding friend~~
 - [ ] Create new group from modal
   - [ ] Add invite link generation
 - [ ] Join public group from browser
+- [ ] Handle chat requests
+  - [x] ~~Remove on reject~~
+  - [ ] Remove on accept and create new DM chat
 
 ## Backend
 - Coming soon!
