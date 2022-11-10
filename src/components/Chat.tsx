@@ -145,7 +145,7 @@ function Chat() {
     closeInfo();
     setOpen(null);
     setOptionsOpen(false);
-  }, [chat])
+  }, [chatId])
   
 
   return (
