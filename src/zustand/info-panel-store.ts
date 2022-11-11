@@ -14,5 +14,5 @@ export const useInfoStore = create<State>((set) => ({
   data: null,
   showGroupInfo: (group) => set((state) => ({ ...state, infoOpen: "group", data: group })),
   showUserInfo: (user) => set((state) => ({ ...state, infoOpen: "user", data: user })),
-  closeInfo: () => set((state) => ({ ...state, infoOpen: null })),
+  closeInfo: () => set((state) => ({ ...state, infoOpen: null, data: null })),
 }));

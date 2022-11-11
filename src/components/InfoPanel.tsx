@@ -81,7 +81,7 @@ function InfoPanel({ type, user, group }: Props) {
             {/* Group name, number of members */}
             <div className="flex flex-col gap-1 items-center">
               <p className="text-2xl font-semibold">{groupData.name}</p>
-              {/* <p className="text-md">{groupData.members.length} members</p> */}
+              <p className="text-md">{groupData.isPublic ? 'Public' : 'Private'} group</p>
               <p className="text-sm text-center">
                 Created by{" "}
                 <span className="font-bold">@{groupData.createdBy.handle}</span>{" "}
@@ -108,7 +108,7 @@ function InfoPanel({ type, user, group }: Props) {
               
               {/* Other group members */}
               {groupData.members.filter(m => m.id !== groupData.createdBy.id).map((m) => (
-                <Contact user={m} />
+                <Contact key={m.id} user={m} />
               ))}
             </div>
           </>
