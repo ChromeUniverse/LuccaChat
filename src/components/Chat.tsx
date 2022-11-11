@@ -10,13 +10,15 @@ import TextareaAutosize from 'react-textarea-autosize';
 
 // Font Awesome
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowRightFromBracket, faCircleInfo, faEllipsisV, faGear, faPaperPlane, faVolumeXmark, IconDefinition } from '@fortawesome/free-solid-svg-icons'
+import { faArrowRightFromBracket, faCircleInfo, faEllipsisV, faGear, faPaperPlane, faTrash, faVolumeXmark, IconDefinition } from '@fortawesome/free-solid-svg-icons'
 
 // Zustand store
 import { useInfoStore } from '../zustand/info-panel-store';
 import { useChatsStore } from '../zustand/chats-store';
 import { ChatType, DMType, GroupType, UserType } from '../data';
 import { AuthContext } from '../App';
+import { useModalStore } from '../zustand/modals-store';
+import { faClipboard } from '@fortawesome/free-regular-svg-icons';
 
 
 type MenuLineProps = {
@@ -60,14 +62,14 @@ type DropdownMenuProps = {
 // Chat option dropdown menu
 function DropdownMenu({ chat, menuOpen, infoData, showInfo, setOptionsOpen }: DropdownMenuProps) {
 
-  const currentChat = useChatsStore(state => state.getCurrentChat);
   const currentUser = useContext(AuthContext);
+  const setModalState = useModalStore(state => state.setModalState);
 
   return (
     <div
       className={`
         absolute -top-2 right-14 px-2 py-2 w-52 bg-slate-300 rounded-md flex flex-col gap-1 transition-all select-none
-        ${menuOpen ? "z-20 -top-2" : "-z-10 -top-4"}
+        ${menuOpen ? "z-10 -top-2" : "-z-10 -top-4"}
       `}
     >
       {chat.type === "group" && (
@@ -79,9 +81,36 @@ function DropdownMenu({ chat, menuOpen, infoData, showInfo, setOptionsOpen }: Dr
             onClickArgs={infoData}
             setOptionsOpen={setOptionsOpen}
           />
-          {chat.createdBy.id === currentUser.id && <MenuLine text="Group settings" icon={faGear} />}
+          {chat.createdBy.id === currentUser.id && (
+            <MenuLine
+              text="Group settings"
+              icon={faGear}
+              setOptionsOpen={setOptionsOpen}
+              onClick={setModalState}
+              onClickArgs={"group-settings"}
+            />
+          )}
+          <MenuLine text="Copy invite link" icon={faClipboard} />
           <MenuLine text="Mute group" icon={faVolumeXmark} />
-          <MenuLine text="Leave group" icon={faArrowRightFromBracket} danger />
+          {chat.createdBy.id === currentUser.id ? (
+            <MenuLine
+              text="Delete group"
+              icon={faTrash}
+              danger
+              onClick={setModalState}
+              onClickArgs={"delete-group"}
+              setOptionsOpen={setOptionsOpen}
+            />
+          ) : (
+            <MenuLine
+              text="Leave group"
+              icon={faArrowRightFromBracket}
+              danger
+              onClick={setModalState}
+              onClickArgs={"leave-group"}
+              setOptionsOpen={setOptionsOpen}
+            />
+          )}
         </>
       )}
       {chat.type === "dm" && (
@@ -108,11 +137,13 @@ function Chat() {
   const closeInfo = useInfoStore(state => state.closeInfo);
 
   // Fetch Messages for this chat
-  const chats = useChatsStore(state => state.chats);
-  const chatId = useChatsStore(state => state.currentChatId);   
   const addMessage = useChatsStore(state => state.addMessage);
-  const setInput = useChatsStore(state => state.setInputBuffer);
-  const chat = chats.find((c: ChatType) => c.id === chatId) as GroupType | DMType;
+  const setInputBuffer = useChatsStore(state => state.setInputBuffer);
+  const currentChatId = useChatsStore(state => state.currentChatId);
+  const chats = useChatsStore(state => state.chats);
+
+  const chat = chats.find(c => c.id === currentChatId) as GroupType | DMType;
+
   const messages = chat.messages;
 
   // Message dropdown
@@ -122,16 +153,18 @@ function Chat() {
   const [optionsOpen, setOptionsOpen] = useState(false);
 
   // Message input
-  // const [input, setInput] = useState('');
+  // const [input, setInput] = useState(chat.inputBuffer);
 
-  function handleInput(e: React.FormEvent<HTMLTextAreaElement>) {    
-    setInput(chatId, e.currentTarget.value);
+  function handleInput(e: React.FormEvent<HTMLTextAreaElement>) {
+    console.log("Fired", e.currentTarget.value);
+    // setInput(e.currentTarget.value);
+    setInputBuffer(chat.id, e.currentTarget.value);
   }
 
   function handleSend() {
     if (chat.inputBuffer === '') return;
-    addMessage(chatId, chat.inputBuffer);
-    setInput(chatId, '');    
+    addMessage(chat.id);
+    setInputBuffer(chat.id, '');
   }
 
   function handleClick(id: string): void {
@@ -142,10 +175,31 @@ function Chat() {
 
   // Close info panel every time chat changes
   useEffect(() => {
+    console.log('Effect fired!');
+    
     closeInfo();
     setOpen(null);
     setOptionsOpen(false);
-  }, [chatId])
+  }, [currentChatId])
+
+
+  const infoOpen = useInfoStore((state) => state.infoOpen);
+  const closeChat = useChatsStore((state) => state.closeChat);
+
+  useEffect(() => {
+    const handleEscPress = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (infoOpen !== null) return closeInfo();
+        return closeChat();
+      }
+    };
+
+    window.addEventListener("keydown", handleEscPress);
+
+    return () => {
+      window.removeEventListener("keydown", handleEscPress);
+    };
+  }, [infoOpen]);
   
 
   return (
@@ -215,7 +269,7 @@ function Chat() {
         {messages.map((m) => (
           <Message
             key={m.id}
-            chatId={chatId}
+            chatId={chat.id}
             messageId={m.id}
             sender={m.sender}
             content={m.content}
