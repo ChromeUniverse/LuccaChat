@@ -95,7 +95,7 @@ function AddFriend() {
         </div>
 
         {/* Error prompt */}
-        <p className="mt-3 italic text-sm">{prompt}</p>
+        <p className="mt-3 italic text-sm text-slate-600">{prompt}</p>
       </div>
     </div>
   );

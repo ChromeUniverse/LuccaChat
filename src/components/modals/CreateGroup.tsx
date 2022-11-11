@@ -29,6 +29,7 @@ function CreateGroup({}: Props) {
   }
 
   function handleClick() {
+    if (name === '' || description === '') return;
     createNewGroup(name, description, isPublic);
     setModalState(null);
   }
@@ -111,7 +112,7 @@ function CreateGroup({}: Props) {
           </div>
 
           {/* Extra info */}
-          <p className="italic text-sm mt-3">
+          <p className="italic text-sm mt-3 text-slate-600">
             New members will need an invite link to join a private group. You
             can change this at any time.
           </p>
@@ -121,7 +122,10 @@ function CreateGroup({}: Props) {
       {/* Modal footer */}
       <div className="flex w-full pt-6">
         <div
-          className="bg-slate-400 w-14 h-14 rounded-full flex-shrink-0 ml-auto cursor-pointer flex items-center justify-center hover:bg-opacity-50"
+          className={`
+            bg-slate-400 w-14 h-14 rounded-full flex-shrink-0 ml-auto flex items-center justify-center
+            ${name === '' || description === '' ? 'bg-opacity-50' : 'cursor-pointer hover:bg-opacity-50'}
+          `}
           onClick={handleClick}
         >
           <FontAwesomeIcon

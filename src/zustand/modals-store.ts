@@ -1,7 +1,15 @@
 import create from "zustand";
 import { devtools } from "zustand/middleware";
 
-export type ModalState = null | 'add-chat' | 'add-friend' | 'create-group' | 'browse-groups';
+export type ModalState =
+  | null
+  | "add-chat"
+  | "add-friend"
+  | "create-group"
+  | "browse-groups"
+  | "group-settings"
+  | "leave-group"
+  | "delete-group";
 
 interface State {
   modalState: ModalState,
@@ -10,7 +18,7 @@ interface State {
 
 export const useModalStore = create<State>()(
   devtools((set) => ({
-    modalState: "create-group",
+    modalState: null,
     setModalState: (newModalState) =>
       set((state) => ({ ...state, modalState: newModalState })),
   }), {
