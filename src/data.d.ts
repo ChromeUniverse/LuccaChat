@@ -23,6 +23,7 @@ export interface ChatType {
 export interface GroupType extends ChatType {
   type: "group";
   group_pfp_url: string;
+  inviteCode: string;
   name: string;
   isPublic: boolean;
   description: string;
