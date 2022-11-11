@@ -36,7 +36,28 @@ function Footer() {
   );
 }
 
-function Home({}: Props) {
+function Home({ }: Props) {
+  
+  const randomMessages = [
+    `(Possibly) the world's greatest worst chat app!`,
+    `...but does anyone actually use it?`,
+    `Proudly built with over 100% COBOL! 👍`,
+    `Over 0.00% uptime, guaranteed! 😉`,
+    `"Discord?" What's that?`,
+    `"Telegram"? Never heard of it! ¯\\_(ツ)_/¯`,
+    `"WhatsApp?" As in "what's up"...? Oh, it's a chat app? Huh.`,
+    `Don't expect VoIP to be added anytime soon...!`,
+    `Buy me a coffee!! But I don't have a Ko-Fi link... 😓`,
+    `Ya like jazz? 🎷🐛`,
+    `"Robert'); DROP TABLE Students;--" approves!`
+  ]
+
+  function getRandomMessage() {
+    const randomIndex = Math.floor(Math.random() * randomMessages.length);
+    // const randomIndex = 10;
+    return randomMessages[randomIndex];
+  }
+
   return (
     <div className="bg-slate-200 w-full h-full flex flex-col items-center justify-center">
       {/* Home view header */}
@@ -47,7 +68,7 @@ function Home({}: Props) {
         <FontAwesomeIcon className="text-5xl text-sky-600" icon={faCommentDots} />
       </header>
 
-      <p className="text-xl mt-2">(Possibly) the world's greatest chat app!</p>
+      <p className="text-lg mt-2">{getRandomMessage()}</p>
 
       {/* Features List */}
       <ul className="list-disc space-y-3 mt-24 mb-12 marker:text-sky-600">
