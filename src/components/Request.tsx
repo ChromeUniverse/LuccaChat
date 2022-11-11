@@ -2,24 +2,27 @@ import React from 'react'
 import { faCheck, faXmark, IconDefinition } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { RequestType, useRequestsStore } from '../zustand/requests-store'
+import { useChatsStore } from '../zustand/chats-store';
 
 interface ButtonProps {
   type: 'accept' | 'reject';
-  id: string;
+  request: RequestType;
 }
 
 // Request accept/reject button component
-function Button({ type, id }: ButtonProps) {
+function Button({ type, request }: ButtonProps) {
   
   const removeRequest = useRequestsStore(state => state.removeRequest);  
+  const createNewDM = useChatsStore(state => state.createNewDM);
 
   const reject = () => {
-    removeRequest(id);
+    removeRequest(request.id);
   }
 
   // NOTE: todo!
   const accept = () => {
-    // ...
+    removeRequest(request.id);
+    createNewDM(request.sender);
   }
 
   return (
@@ -50,8 +53,8 @@ function Request({ request }: Props) {
       <p className='text-lg'>{request.sender.name}</p>
       {/* Buttons container */}
       <div className='flex gap-2 ml-auto'>
-        <Button type="reject" id={request.id} />
-        <Button type="accept" id={request.id}/>
+        <Button type="reject" request={request} />
+        <Button type="accept" request={request}/>
       </div>
     </div>
   )
