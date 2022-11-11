@@ -39,14 +39,14 @@ function Footer() {
 function Home({ }: Props) {
   
   const randomMessages = [
-    `(Possibly) the world's greatest worst chat app!`,
+    `(Possibly) the world's worst chat app!`,
     `...but does anyone actually use it?`,
     `Proudly built with over 100% COBOL! 👍`,
     `Over 0.00% uptime, guaranteed! 😉`,
     `"Discord?" What's that?`,
     `"Telegram"? Never heard of it! ¯\\_(ツ)_/¯`,
     `"WhatsApp?" As in "what's up"...? Oh, it's a chat app? Huh.`,
-    `Don't expect VoIP to be added anytime soon...!`,
+    `Don't expect VoIP to be added any time soon...!`,
     `Buy me a coffee!! But I don't have a Ko-Fi link... 😓`,
     `Ya like jazz? 🎷🐛`,
     `"Robert'); DROP TABLE Students;--" approves!`
