@@ -8,18 +8,19 @@
 
 ### Modals
 - [ ] Account settings
-- [ ] Group settings
-- [ ] Group invite link creation/settings/regeneration
-- [ ] Exit group (public and private variants)
+- [x] ~~Group settings~~
+- [x] ~~Group invite link creation/settings/regeneration~~
 
 ## Frontend
 
 ### UI Components
+- [x] ~~Home Page~~
 - [ ] Group creation modal
   - [ ] Profile image upload
+- [x] ~~Exit group (public and private variants)~~
 
 ### Logic
-- [ ] Improve x-padding on info panel
+- [x] ~~Improve x-padding on info panel~~
 - [x] ~~Order chats in sidebar by latest message~~
 - [x] ~~Send mock request when adding friend~~
 - [ ] Create new group from modal
