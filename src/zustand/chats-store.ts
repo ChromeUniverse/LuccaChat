@@ -78,10 +78,11 @@ const sampleChat1: GroupType = {
   type: "group",
   group_pfp_url: creeper,
   createdAt: new Date(),
-  createdBy: user1,
+  createdBy: user,
   isPublic: false,
   name: "Pessoal 2.0",
   description: "A very cool group",
+  inviteCode: nanoid(),
   latest: new Date(),
   messages: [sampleMessage1],
   inputBuffer: "",
@@ -99,13 +100,23 @@ const sampleChat2: DMType = {
 
 interface State {
   chats: (GroupType | DMType)[];
-  currentChatId: string;
+  currentChatId: string | null;
   getCurrentChat: () => GroupType | DMType;
-  createNewGroup: (name: string, description: string, isPublic: boolean) => void;
+  getChatById: (chatId: string) => GroupType | DMType | null;
+  createNewDM: (contact: UserType) => void;
+  createNewGroup: (
+    name: string,
+    description: string,
+    isPublic: boolean
+  ) => void;
+  removeGroup: (chatId: string) => void;
   setCurrentChatId: (chatId: string) => void;
+  closeChat: () => void;
   setInputBuffer: (chatId: string, newInput: string) => void;
+  resetInviteCode: (chatId: string) => string;
+  updateGroupSettings: (chatId:string, name: string, description: string, isPublic: boolean) => void;
   fetchMessages: (chat: string) => MessageType[];
-  addMessage: (chatId: string, messageContent: string) => void;
+  addMessage: (chatId: string) => void;
   deleteMessage: (chatId: string, messageId: string) => void;
 }
 
@@ -116,53 +127,130 @@ export const useChatsStore = create<State>()(
 
       currentChatId: "1",
 
-      setCurrentChatId: (chatId) =>
-        set((state) => ({ ...state, currentChatId: chatId })),
+      closeChat: () => {
+        set((state) => ({ ...state, currentChatId: null }));
+      },
+
+      setCurrentChatId: (chatId) => {
+        set((state) => ({ ...state, currentChatId: chatId }));
+      },
+
+      createNewDM: (contact) => {
+
+        const newId = nanoid();
+
+        const newDM: DMType = {
+          id: newId,
+          latest: new Date(),
+          messages: [],
+          inputBuffer: "",
+          type: "dm",
+          contact: contact
+        };
+
+        set((state) => ({ ...state, currentChatId: newId, chats: [...get().chats, newDM] }));
+      },
 
       // Creates a new group chat
       createNewGroup: (name, description, isPublic) => {
 
+        const newId = nanoid();
+
         const newGroup: GroupType = {
-          id: nanoid(),
+          id: newId,
           latest: new Date(),
           messages: [],
-          inputBuffer: '',
-          type: 'group',
+          inputBuffer: "",
+          type: "group",
           name: name,
           description: description,
           group_pfp_url: creeper,
           isPublic: isPublic,
+          inviteCode: nanoid(),
           members: [user],
           createdBy: user,
           createdAt: new Date(),
-        }
+        };
 
-        set((state) => ({ ...state, chats: [...get().chats, newGroup] }));
+        set((state) => ({ ...state, currentChatId: newId, chats: [...get().chats, newGroup] }));
       },
-      
+
+      removeGroup: (chatId: string) => {
+        set((state) => ({
+          ...state,
+          currentChatId: null,
+          chats: get().chats.filter((chat) => chat.id !== chatId),
+        }));
+      },
+
       getCurrentChat: () => {
         const chats = get().chats;
         const currentChatId = get().currentChatId;
         return chats.find((c) => c.id === currentChatId) as GroupType | DMType;
       },
-        
+
+      getChatById: (chatId) => {
+        const chats = get().chats;
+        const chat = chats.find((chat) => chat.id === chatId);
+        if (chat === undefined) return null;
+        return chat;
+      },
+
       setInputBuffer: (chatId, newInput) => {
         set((state) => {
-          // console.log('did we even get this far?');
-          const chats = get().chats;
-          const targetChatIndex = chats.findIndex((c) => c.id === chatId);
-          const targetChat = chats[targetChatIndex];
-          console.log(targetChat);
-
           return {
             ...state,
-            chats: [
-              ...chats.slice(0, targetChatIndex),
-              { ...targetChat, inputBuffer: newInput },
-              ...chats.slice(targetChatIndex + 1),
-            ],
+            chats: get().chats.map((chat) => ({
+              ...chat,
+              inputBuffer: chat.id === chatId ? newInput : chat.inputBuffer,
+            })),
           };
         });
+      },
+
+      resetInviteCode: (chatId: string) => {
+        const newInviteCode = nanoid();
+        // first check if this chat is a group
+        const chat = get().getChatById(chatId);
+        if (chat === null) throw new Error("Chat not found");
+        if (chat.type !== "group")
+          throw new Error("You can't call this function on a DM chat!");
+
+        // update chats immutably
+        set((state) => ({
+          ...state,
+          chats: get().chats.map((chat) =>
+            chat.id === chatId && chat.type === "group"
+              ? { ...chat, inviteCode: newInviteCode }
+              : chat
+          ),
+        }));
+        return newInviteCode;
+      },
+
+      updateGroupSettings: (chatId, name, description, isPublic) => {
+        // get chat by ID, perform sanity checks
+        const chat = get().getChatById(chatId);
+        if (chat === null) throw new Error("Chat not found");
+        if (chat.type !== "group") {
+          throw new Error("You can't call this function on a DM chat!");
+        }
+
+        // immutably update group
+        const updatedGroup = {
+          ...chat,
+          name: name,
+          description: description,
+          isPublic: isPublic,
+        };
+
+        // update chats immutably
+        set((state) => ({
+          ...state,
+          chats: get().chats.map((chat) =>
+            chat.id === chatId ? updatedGroup : chat
+          ),
+        }));
       },
 
       // Fetch all messages for a specific chat
@@ -174,21 +262,21 @@ export const useChatsStore = create<State>()(
       },
 
       // Creates a new message and adds it to the chat with the specified ID
-      addMessage: (chatId, messageContent) => {
+      addMessage: (chatId) => {
+        // console.log('did we even get this far?');
+        const chats = get().chats;
+        const targetChatIndex = chats.findIndex((c) => c.id === chatId);
+        const targetChat = chats[targetChatIndex];
+        console.log(targetChat);
+
         const newMsg: MessageType = {
           id: nanoid(),
           sender: user,
-          content: messageContent,
+          content: targetChat.inputBuffer,
           createdAt: new Date(),
         };
 
         set((state) => {
-          // console.log('did we even get this far?');
-          const chats = get().chats;
-          const targetChatIndex = chats.findIndex((c) => c.id === chatId);
-          const targetChat = chats[targetChatIndex];
-          console.log(targetChat);
-
           return {
             ...state,
             chats: [
