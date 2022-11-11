@@ -155,7 +155,7 @@ function Sidebar({ }: Props) {
         <div className="relative mt-2 py-1.5 bg-slate-300 flex rounded-md select-none">
           {/* "Chats" text */}
           <p
-            className="flex-1 text-center cursor-pointer font-semibold"
+            className="flex-1 text-center cursor-pointer font-semibold text-slate-600"
             onClick={() => setTab("chats")}
           >
             Chats
@@ -163,7 +163,7 @@ function Sidebar({ }: Props) {
 
           {/* "Requests" container */}
           <div
-            className="flex-1 flex gap-3 items-center justify-center cursor-pointer"
+            className="flex-1 flex gap-3 items-center justify-center cursor-pointer text-slate-600"
             onClick={() => setTab("requests")}
           >
             {/* Text */}
@@ -178,7 +178,7 @@ function Sidebar({ }: Props) {
 
           <div
             className={`
-              absolute top-8 w-[50%] h-1 bg-slate-500 rounded-full transition-all
+              absolute top-8 w-[50%] h-1 bg-slate-600 rounded-full transition-all
               ${tab === "chats" ? "left-0" : "left-[50%]"}
             `}
           ></div>
