@@ -3,16 +3,17 @@ import avatar from "../assets/avatar.jpeg";
 import creeper from "../assets/creeper.webp";
 import { devtools } from "zustand/middleware";
 import { nanoid } from "nanoid";
-import { ChatType, DMType, GroupType, MessageType, UserType } from "../data";
+import { ChatType, CurrentUserType, DMType, GroupType, MessageType, UserType } from "../data";
 
 // example Users
 
 // authed user:
-export const user: UserType = {
+export const user: CurrentUserType = {
   id: "0",
   pfp_url: avatar,
   name: "Lucca Rodrigues",
   handle: "lucca",
+  email: "lucca@gmail.com"
 };
 
 export const user1: UserType = {
@@ -54,7 +55,7 @@ const user5: UserType = {
 const sampleMessage1: MessageType = {
   id: nanoid(),
   sender: user1,
-  content: "lorem ipsum? yeah right lmao, no lorem upsum here bro 🤪",
+  content: "lorem ipsum? yeah right lmao, no lorem ipsum here bro 🤪",
   createdAt: new Date(),
 };
 
@@ -84,6 +85,7 @@ const sampleChat1: GroupType = {
   description: "A very cool group",
   inviteCode: nanoid(),
   latest: new Date(),
+  unread: 1,
   messages: [sampleMessage1],
   inputBuffer: "",
   members: [user, user1, user2, user3, user4, user5],
@@ -94,6 +96,7 @@ const sampleChat2: DMType = {
   type: "dm",
   contact: user2,
   latest: new Date(),
+  unread: 2,
   messages: [sampleMessage2, sampleMessage3],
   inputBuffer: "",
 };
@@ -118,6 +121,7 @@ interface State {
   fetchMessages: (chat: string) => MessageType[];
   addMessage: (chatId: string) => void;
   deleteMessage: (chatId: string, messageId: string) => void;
+  clearUnread: (chatId?: string) => void;
 }
 
 export const useChatsStore = create<State>()(
@@ -125,7 +129,7 @@ export const useChatsStore = create<State>()(
     (set, get) => ({
       chats: [sampleChat1, sampleChat2],
 
-      currentChatId: "1",
+      currentChatId: null,
 
       closeChat: () => {
         set((state) => ({ ...state, currentChatId: null }));
@@ -136,29 +140,33 @@ export const useChatsStore = create<State>()(
       },
 
       createNewDM: (contact) => {
-
         const newId = nanoid();
 
         const newDM: DMType = {
           id: newId,
           latest: new Date(),
+          unread: 0,
           messages: [],
           inputBuffer: "",
           type: "dm",
-          contact: contact
+          contact: contact,
         };
 
-        set((state) => ({ ...state, currentChatId: newId, chats: [...get().chats, newDM] }));
+        set((state) => ({
+          ...state,
+          currentChatId: newId,
+          chats: [...get().chats, newDM],
+        }));
       },
 
       // Creates a new group chat
       createNewGroup: (name, description, isPublic) => {
-
         const newId = nanoid();
 
         const newGroup: GroupType = {
           id: newId,
           latest: new Date(),
+          unread: 0,
           messages: [],
           inputBuffer: "",
           type: "group",
@@ -172,10 +180,14 @@ export const useChatsStore = create<State>()(
           createdAt: new Date(),
         };
 
-        set((state) => ({ ...state, currentChatId: newId, chats: [...get().chats, newGroup] }));
+        set((state) => ({
+          ...state,
+          currentChatId: newId,
+          chats: [...get().chats, newGroup],
+        }));
       },
 
-      removeGroup: (chatId: string) => {
+      removeGroup: (chatId) => {
         set((state) => ({
           ...state,
           currentChatId: null,
@@ -208,7 +220,7 @@ export const useChatsStore = create<State>()(
         });
       },
 
-      resetInviteCode: (chatId: string) => {
+      resetInviteCode: (chatId) => {
         const newInviteCode = nanoid();
         // first check if this chat is a group
         const chat = get().getChatById(chatId);
@@ -292,7 +304,7 @@ export const useChatsStore = create<State>()(
         });
       },
 
-      deleteMessage: (chatId: string, messageId: string) => {
+      deleteMessage: (chatId, messageId) => {
         set((state) => {
           // console.log('did we even get this far?');
           const chats = get().chats;
@@ -311,6 +323,15 @@ export const useChatsStore = create<State>()(
             ],
           };
         });
+      },
+
+      clearUnread: (chatId) => {
+        set((state) => ({
+          ...state,
+          chats: get().chats.map((chat) =>
+            chat.id === get().currentChatId ? { ...chat, unread: 0 } : chat
+          ),
+        }));
       },
     }),
     {
