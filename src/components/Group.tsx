@@ -6,9 +6,10 @@ interface Props {
   name: string;
   members: number;
   chatId?: string;
+  unread?: number;
 }
 
-function Group({ name, members, chatId }: Props) {
+function Group({ name, members, chatId, unread }: Props) {
 
   const currentChatId = useChatsStore(state => state.currentChatId);
   const setChatId = useChatsStore(state => state.setCurrentChatId);
@@ -33,6 +34,13 @@ function Group({ name, members, chatId }: Props) {
           {members.toLocaleString()} members
         </p>
       </div>
+
+      {/* Unread message count */}
+      {chatId && unread !== 0 && (
+        <div className="min-w-[1.5rem] px-2 h-6 bg-slate-400 rounded-full ml-auto flex justify-center items-center text-slate-100 font-bold text-sm">
+          {unread}
+        </div>
+      )}
     </div>
   );
 }

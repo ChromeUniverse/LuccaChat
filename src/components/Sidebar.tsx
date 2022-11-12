@@ -73,8 +73,7 @@ function Sidebar({ }: Props) {
       {/* Main Sidebar content */}
       <div className="flex flex-col px-2 w-full h-full overflow-hidden relative">
         {/* Dropdown menu */}
-
-        {/* // dark translucent BG wrapper */}
+        {/* dark translucent BG wrapper */}
         <div
           className={`
             absolute top-0 left-0 bg-black bg-opacity-50 w-full h-full flex flex-col items-center transition-all select-none
@@ -87,7 +86,7 @@ function Sidebar({ }: Props) {
           `}
           >
             {/* Account */}
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center cursor-pointer" onClick={() => setModalState('account-settings')}>
               <p className="font-semibold text-xl">Account</p>
               <FontAwesomeIcon
                 className="cursor-pointer"
@@ -207,6 +206,7 @@ function Sidebar({ }: Props) {
                   <Contact
                     key={chat.id}
                     user={chat.contact}
+                    unread={chat.unread}
                     chatId={chat.id}
                   />
                 ) : (
@@ -214,6 +214,7 @@ function Sidebar({ }: Props) {
                     key={chat.id}
                     name={chat.name}
                     members={chat.members.length}
+                    unread={chat.unread}
                     chatId={chat.id}
                   />
                 );
