@@ -5,6 +5,10 @@ export interface UserType {
   handle: string;
 }
 
+export interface CurrentUserType extends UserType {
+  email: string;
+}
+
 export interface MessageType {
   id: string;
   sender: UserType;
@@ -14,7 +18,7 @@ export interface MessageType {
 
 export interface ChatType {
   id: string;
-  // type: "dm" | "group";
+  unread: number;
   latest: Date;
   messages: MessageType[];
   inputBuffer: string;
