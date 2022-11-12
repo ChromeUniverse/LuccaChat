@@ -136,14 +136,15 @@ function Chat() {
   const showUserInfo = useInfoStore(state => state.showUserInfo);
   const closeInfo = useInfoStore(state => state.closeInfo);
 
-  // Fetch Messages for this chat
+  // Fetch actions and data for this chat from zustand store
   const addMessage = useChatsStore(state => state.addMessage);
   const setInputBuffer = useChatsStore(state => state.setInputBuffer);
   const currentChatId = useChatsStore(state => state.currentChatId);
   const chats = useChatsStore(state => state.chats);
+  const clearUnread = useChatsStore(state => state.clearUnread);
 
+  // fetch messages for current chat
   const chat = chats.find(c => c.id === currentChatId) as GroupType | DMType;
-
   const messages = chat.messages;
 
   // Message dropdown
@@ -153,11 +154,9 @@ function Chat() {
   const [optionsOpen, setOptionsOpen] = useState(false);
 
   // Message input
-  // const [input, setInput] = useState(chat.inputBuffer);
 
   function handleInput(e: React.FormEvent<HTMLTextAreaElement>) {
     console.log("Fired", e.currentTarget.value);
-    // setInput(e.currentTarget.value);
     setInputBuffer(chat.id, e.currentTarget.value);
   }
 
@@ -175,8 +174,7 @@ function Chat() {
 
   // Close info panel every time chat changes
   useEffect(() => {
-    console.log('Effect fired!');
-    
+    clearUnread();    
     closeInfo();
     setOpen(null);
     setOptionsOpen(false);
@@ -185,10 +183,13 @@ function Chat() {
 
   const infoOpen = useInfoStore((state) => state.infoOpen);
   const closeChat = useChatsStore((state) => state.closeChat);
+  const modalState = useModalStore(state => state.modalState);
 
+  // Escape key click handler
   useEffect(() => {
     const handleEscPress = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        if (modalState !== null) return;
         if (infoOpen !== null) return closeInfo();
         return closeChat();
       }
@@ -199,7 +200,7 @@ function Chat() {
     return () => {
       window.removeEventListener("keydown", handleEscPress);
     };
-  }, [infoOpen]);
+  }, [infoOpen, modalState]);
   
 
   return (
