@@ -22,11 +22,6 @@ function App() {
   const infoData = useInfoStore((state) => state.data);
   const currentChatId = useChatsStore((state) => state.currentChatId);
 
-
-  useEffect(() => {
-    console.log('App Effect fired!');
-  }, [currentChatId])
-
   return (
     <AuthContext.Provider value={user}>
       <div className="flex w-screen h-screen relative">        
