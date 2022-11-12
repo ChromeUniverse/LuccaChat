@@ -170,9 +170,11 @@ function GroupSettings({}: Props) {
 
       {/* Modal footer */}
       <div className="flex w-full pt-6 items-center gap-6">
-
+        
+        {/* Update Prompt */}
         <p className="ml-auto">{updatePrompt}</p>
-
+        
+        {/* Update Button */}
         <div
           className="bg-slate-400 px-6 h-14 rounded-full flex-shrink-0 cursor-pointer flex items-center justify-center hover:bg-opacity-50"
           onClick={handleUpdate}

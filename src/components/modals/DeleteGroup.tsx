@@ -43,7 +43,7 @@ function DeleteGroup() {
 
       {/* Modal description */}
       <p className="font-normal pt-10 pb-4">
-        Are you sure you want to delete this group? This effectively means disbanding this group. This action is <span className='font-bold'>irreversible</span>!
+        Are you sure you want to delete this group? All messages will be lost and the entire group will be disbanded. <span className='italic'>Oh, the horror!!</span> <br /> <br /> This action is <span className='font-bold'>irreversible</span>!
       </p>
 
       {/* Modal footer */}

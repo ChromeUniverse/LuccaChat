@@ -63,7 +63,7 @@ function AddFriend() {
 
         <div className="w-full pl-4 mt-2 bg-slate-200 rounded-full flex items-center">
           {/* "@"" handle prefix */}
-          <p className={`-mt-[2px] mr-1.5 ${sent ? "text-slate-400" : ""}`}>@</p>
+          <p className={`-mt-[2px] mr-1.5 text-slate-400 ${sent ? "text-slate-400" : ""}`}>@</p>
 
           {/* handle input */}
           <input
