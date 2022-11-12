@@ -9,7 +9,8 @@ export type ModalState =
   | "browse-groups"
   | "group-settings"
   | "leave-group"
-  | "delete-group";
+  | "delete-group"
+  | "account-settings";
 
 interface State {
   modalState: ModalState,
@@ -18,7 +19,7 @@ interface State {
 
 export const useModalStore = create<State>()(
   devtools((set) => ({
-    modalState: null,
+    modalState: "account-settings",
     setModalState: (newModalState) =>
       set((state) => ({ ...state, modalState: newModalState })),
   }), {
