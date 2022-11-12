@@ -40,12 +40,12 @@ function Home({ }: Props) {
   
   const randomMessages = [
     `(Possibly) the world's worst chat app!`,
-    `...but does anyone actually use it?`,
+    `Does anyone actually use this thing...?`,
     `Proudly built with over 100% COBOL! 👍`,
     `Over 0.00% uptime, guaranteed! 😉`,
     `"Discord?" What's that?`,
     `"Telegram"? Never heard of it! ¯\\_(ツ)_/¯`,
-    `"WhatsApp?" As in "what's up"...? Oh, it's a chat app? Huh.`,
+    `"WhatsApp?" As in "what's up"...? Oh, it's a chat app? Huh, never heard of it.`,
     `Don't expect VoIP to be added any time soon...!`,
     `Buy me a coffee!! But I don't have a Ko-Fi link... 😓`,
     `Ya like jazz? 🎷🐛`,
@@ -54,7 +54,7 @@ function Home({ }: Props) {
 
   function getRandomMessage() {
     const randomIndex = Math.floor(Math.random() * randomMessages.length);
-    // const randomIndex = 10;
+    // const randomIndex = 1;
     return randomMessages[randomIndex];
   }
 
@@ -68,7 +68,7 @@ function Home({ }: Props) {
         <FontAwesomeIcon className="text-5xl text-sky-600" icon={faCommentDots} />
       </header>
 
-      <p className="text-lg mt-2">{getRandomMessage()}</p>
+      <p className="text-sm mt-4">{getRandomMessage()}</p>
 
       {/* Features List */}
       <ul className="list-disc space-y-3 mt-24 mb-12 marker:text-sky-600">
