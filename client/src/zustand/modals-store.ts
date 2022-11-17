@@ -19,7 +19,7 @@ interface State {
 
 export const useModalStore = create<State>()(
   devtools((set) => ({
-    modalState: "account-settings",
+    modalState: null,
     setModalState: (newModalState) =>
       set((state) => ({ ...state, modalState: newModalState })),
   }), {

@@ -187,7 +187,7 @@ function AccountSettings({}: Props) {
             setter={setEmail}
             errorPrompt={emailError}
           />
-          <FormLine label="Password" password />
+          {/* <FormLine label="Password" password /> */}
         </div>
       </div>
 

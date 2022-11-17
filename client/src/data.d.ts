@@ -40,3 +40,9 @@ export interface DMType extends ChatType {
   type: "dm";
   contact: UserType;
 }
+
+export interface RequestType {
+  id: string;
+  sender: UserType;
+  sentAt: Date;
+}

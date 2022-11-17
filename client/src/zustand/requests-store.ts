@@ -1,21 +1,13 @@
 import create from "zustand";
 import { devtools } from "zustand/middleware";
-import { UserType } from "../data";
+import { RequestType, UserType } from "../data";
 import { user1 } from "./chats-store";
 
-export interface RequestType {
-  id: string;
-  sender: UserType;
-  sentAt: Date;
-}
-
-
-const request1 = {
+const request1: RequestType = {
   id: '0',
   sender: user1,
   sentAt: new Date(),
 }
-
 
 interface State {
   requests: RequestType[];

@@ -3,7 +3,14 @@ import avatar from "../assets/avatar.jpeg";
 import creeper from "../assets/creeper.webp";
 import { devtools } from "zustand/middleware";
 import { nanoid } from "nanoid";
-import { ChatType, CurrentUserType, DMType, GroupType, MessageType, UserType } from "../data";
+import {
+  ChatType,
+  CurrentUserType,
+  DMType,
+  GroupType,
+  MessageType,
+  UserType,
+} from "../data";
 
 // example Users
 
@@ -13,7 +20,7 @@ export const user: CurrentUserType = {
   pfp_url: avatar,
   name: "Lucca Rodrigues",
   handle: "lucca",
-  email: "lucca@gmail.com"
+  email: "lucca@gmail.com",
 };
 
 export const user1: UserType = {
@@ -74,13 +81,13 @@ const sampleMessage3: MessageType = {
 };
 
 // example chats
-const sampleChat1: GroupType = {
+export const sampleChat1: GroupType = {
   id: "1",
   type: "group",
   group_pfp_url: creeper,
   createdAt: new Date(),
   createdBy: user,
-  isPublic: false,
+  isPublic: true,
   name: "Pessoal 2.0",
   description: "A very cool group",
   inviteCode: nanoid(),
@@ -117,7 +124,12 @@ interface State {
   closeChat: () => void;
   setInputBuffer: (chatId: string, newInput: string) => void;
   resetInviteCode: (chatId: string) => string;
-  updateGroupSettings: (chatId:string, name: string, description: string, isPublic: boolean) => void;
+  updateGroupSettings: (
+    chatId: string,
+    name: string,
+    description: string,
+    isPublic: boolean
+  ) => void;
   fetchMessages: (chat: string) => MessageType[];
   addMessage: (chatId: string) => void;
   deleteMessage: (chatId: string, messageId: string) => void;

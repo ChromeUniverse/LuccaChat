@@ -8,7 +8,7 @@ import Contact from './Contact'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRightFromBracket, faGear, faMagnifyingGlass, faPlus, faRightFromBracket, faUser } from '@fortawesome/free-solid-svg-icons';
 import { faCommentDots } from '@fortawesome/free-regular-svg-icons';
-import { RequestType } from '../zustand/requests-store';
+import { RequestType } from '../data';
 
 // Zustand
 import { useChatsStore } from '../zustand/chats-store';

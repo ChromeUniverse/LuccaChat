@@ -14,6 +14,9 @@ import { GroupType, UserType } from "./data";
 import { useChatsStore, user } from "./zustand/chats-store";
 import ModalWrapper from "./components/modals/ModalWrapper";
 import Home from "./components/Home";
+import PublicGroupBrowser, {
+  useBrowserStore,
+} from "./components/PublicGroupBrowser";
 
 export const AuthContext = createContext(user);
 
@@ -21,16 +24,21 @@ function App() {
   const infoOpen = useInfoStore((state) => state.infoOpen);
   const infoData = useInfoStore((state) => state.data);
   const currentChatId = useChatsStore((state) => state.currentChatId);
+  const browserOpen = useBrowserStore((state) => state.open);
 
   return (
     <AuthContext.Provider value={user}>
-      <div className="flex w-screen h-screen relative">        
+      <div className="flex w-screen h-screen relative">
         <ModalWrapper />
         <Sidebar />
 
         {/* Display Home or Chat views */}
         {currentChatId === null ? (
-          <Home />
+          browserOpen ? (
+            <PublicGroupBrowser />
+          ) : (
+            <Home />
+          )
         ) : (
           <>
             <div className="h-screen w-0.5 bg-slate-100 flex-shrink-0"></div>
