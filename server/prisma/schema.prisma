@@ -1,0 +1,61 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String    @id @unique @default(uuid())
+  createdAt        DateTime  @default(now())
+  name             String
+  handle           String    @unique
+  messages         Message[]
+  chats            Chat[]    @relation("member")
+  createdGroups    Chat[]    @relation("creator")
+  inboundRequests  Request[] @relation("inbound")
+  outboundRequests Request[] @relation("outbound")
+}
+
+model Message {
+  id        String   @id @unique @default(uuid())
+  createdAt DateTime @default(now())
+  content   String
+  User      User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  Chat      Chat     @relation(fields: [chatId], references: [id])
+  chatId    String
+}
+
+model Chat {
+  id          String    @id @unique @default(uuid())
+  createdAt   DateTime  @default(now())
+  type        ChatType
+  latest      DateTime
+  messages    Message[]
+  members     User[]    @relation("member")
+  name        String?
+  inviteCode  String?
+  isPublic    Boolean?  @default(false)
+  description String?
+  creator     User?     @relation("creator", fields: [creatorId], references: [id])
+  creatorId   String?
+}
+
+enum ChatType {
+  GROUP
+  DM
+}
+
+model Request {
+  id         String @id @unique @default(uuid())
+  Receiver   User   @relation("inbound", fields: [receiverId], references: [id])
+  receiverId String
+  Sender     User   @relation("outbound", fields: [senderId], references: [id])
+  senderId   String
+}
