@@ -1,22 +1,37 @@
-import { faXmark } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React from 'react'
-import { ModalState, useModalStore } from '../../zustand/modals-store';
+import { faXmark } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import React from "react";
+import { ModalState, useModalStore } from "../../zustand/modals-store";
+import { useBrowserStore } from "../PublicGroupBrowser";
 
 interface CardProps {
   imgSrc: string;
   description: string;
   btnText: string;
-  nextModal: ModalState
+  nextModal: ModalState;
+  override?: boolean;
 }
 
-function Card({ description, imgSrc, btnText, nextModal }: CardProps) {
-  
-  const setModalState = useModalStore(state => state.setModalState);
+function Card({
+  description,
+  imgSrc,
+  btnText,
+  nextModal,
+  override,
+}: CardProps) {
+  // zustand actions
+  const setModalState = useModalStore((state) => state.setModalState);
+  const setOpen = useBrowserStore((state) => state.setOpen);
+
+  // onClick handlers
+  const setNextModal = () => setModalState(nextModal);
+  const setNextPublicGroupBrowser = () => {
+    setModalState(null);
+    setOpen(true);
+  };
 
   return (
     <div className="flex-1 flex flex-col items-center gap-6">
-
       {/* Card content */}
       <div className="bg-slate-200 w-full h-72 py-4 rounded-lg flex flex-col items-center gap-4">
         {/* Card image */}
@@ -32,7 +47,9 @@ function Card({ description, imgSrc, btnText, nextModal }: CardProps) {
       {/* Card button */}
       <button
         className="bg-slate-400 text-slate-100 text-lg w-full py-3 rounded-full text-center font-semibold outline-none hover:bg-slate-500"
-        onClick={() => setModalState(nextModal)}
+        onClick={() =>
+          override ? setNextPublicGroupBrowser() : setNextModal()
+        }
       >
         {btnText}
       </button>
@@ -41,18 +58,21 @@ function Card({ description, imgSrc, btnText, nextModal }: CardProps) {
 }
 
 function AddChat() {
-  
-  const setModalState = useModalStore(state => state.setModalState);
+  const setModalState = useModalStore((state) => state.setModalState);
 
   return (
     <div className="h-[550px] w-[900px] px-16 pt-6 pb-20 bg-slate-300 bg-opacity-100 z-20 rounded-xl flex flex-col justify-between">
-
       {/* Modal header */}
 
-      <div className='flex flex-row w-full items-center justify-between'>
+      <div className="flex flex-row w-full items-center justify-between">
         <h2 className="py-3 text-2xl font-semibold">Add a new chat</h2>
-        <FontAwesomeIcon className='cursor-pointer' icon={faXmark} size="xl" onClick={() => setModalState(null)}/>
-      </div>      
+        <FontAwesomeIcon
+          className="cursor-pointer"
+          icon={faXmark}
+          size="xl"
+          onClick={() => setModalState(null)}
+        />
+      </div>
 
       {/* Cards container */}
       <div className="mt-6 px-6 flex flex-row gap-8">
@@ -61,7 +81,7 @@ function AddChat() {
           imgSrc="https://cdn.kapwing.com/video_image-qEslsWspL.jpg"
           btnText="Add Friend"
           nextModal="add-friend"
-        />        
+        />
         <Card
           description="Start a new group chat and take over the world"
           imgSrc="https://media.tenor.com/jyLzbD66yKwAAAAM/pcm.gif"
@@ -73,10 +93,11 @@ function AddChat() {
           imgSrc="https://media.tenor.com/NpuPnuLlEGEAAAAM/jim-carrey.gif"
           btnText="Browse Groups"
           nextModal="browse-groups"
+          override
         />
       </div>
     </div>
   );
 }
 
-export default AddChat
+export default AddChat;
