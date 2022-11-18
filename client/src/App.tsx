@@ -17,6 +17,16 @@ import Home from "./components/Home";
 import PublicGroupBrowser, {
   useBrowserStore,
 } from "./components/PublicGroupBrowser";
+import useWebSockets from "./hooks/useWebSockets";
+
+// Event Emitter
+import mitt from "mitt";
+
+type Events = {
+  chatMessage: any;
+};
+
+export const emitter = mitt<Events>();
 
 export const AuthContext = createContext(user);
 
@@ -25,6 +35,7 @@ function App() {
   const infoData = useInfoStore((state) => state.data);
   const currentChatId = useChatsStore((state) => state.currentChatId);
   const browserOpen = useBrowserStore((state) => state.open);
+  useWebSockets();
 
   return (
     <AuthContext.Provider value={user}>

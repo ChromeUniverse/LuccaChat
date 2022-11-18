@@ -1,25 +1,40 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, {
+  createRef,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 // Test photo
-import creeper from '../assets/creeper.webp'
-import avatar from '../assets/avatar.jpeg'
+import creeper from "../assets/creeper.webp";
+import avatar from "../assets/avatar.jpeg";
 
 // Components
-import Message from './Message'
-import TextareaAutosize from 'react-textarea-autosize';
+import Message from "./Message";
+import TextareaAutosize from "react-textarea-autosize";
 
 // Font Awesome
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowRightFromBracket, faCircleInfo, faEllipsisV, faGear, faPaperPlane, faTrash, faVolumeXmark, IconDefinition } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faArrowRightFromBracket,
+  faCircleInfo,
+  faEllipsisV,
+  faGear,
+  faPaperPlane,
+  faTrash,
+  faVolumeXmark,
+  IconDefinition,
+} from "@fortawesome/free-solid-svg-icons";
 
 // Zustand store
-import { useInfoStore } from '../zustand/info-panel-store';
-import { useChatsStore } from '../zustand/chats-store';
-import { ChatType, DMType, GroupType, UserType } from '../data';
-import { AuthContext } from '../App';
-import { useModalStore } from '../zustand/modals-store';
-import { faClipboard } from '@fortawesome/free-regular-svg-icons';
-
+import { useInfoStore } from "../zustand/info-panel-store";
+import { useChatsStore } from "../zustand/chats-store";
+import { ChatType, DMType, GroupType, UserType } from "../data";
+import { AuthContext, emitter } from "../App";
+import { useModalStore } from "../zustand/modals-store";
+import { faClipboard } from "@fortawesome/free-regular-svg-icons";
+import useWebSockets from "../hooks/useWebSockets";
 
 type MenuLineProps = {
   text: string;
@@ -31,13 +46,23 @@ type MenuLineProps = {
 };
 
 // A line inside the dropdown menu
-function MenuLine({text, icon, danger = false, onClickArgs, onClick = () => {}, setOptionsOpen = () => {}} : MenuLineProps) {
+function MenuLine({
+  text,
+  icon,
+  danger = false,
+  onClickArgs,
+  onClick = () => {},
+  setOptionsOpen = () => {},
+}: MenuLineProps) {
   return (
     <div
       className={`flex w-full justify-between px-2 py-1.5 rounded-md cursor-pointer hover:bg-slate-400 hover:bg-opacity-30 ${
         danger ? "mt-2" : ""
       }`}
-      onClick={() => { onClick(onClickArgs);  setOptionsOpen(false); }}
+      onClick={() => {
+        onClick(onClickArgs);
+        setOptionsOpen(false);
+      }}
     >
       <p className={danger ? "text-red-500 font-semibold" : ""}>{text}</p>
       <FontAwesomeIcon
@@ -60,10 +85,15 @@ type DropdownMenuProps = {
 };
 
 // Chat option dropdown menu
-function DropdownMenu({ chat, menuOpen, infoData, showInfo, setOptionsOpen }: DropdownMenuProps) {
-
+function DropdownMenu({
+  chat,
+  menuOpen,
+  infoData,
+  showInfo,
+  setOptionsOpen,
+}: DropdownMenuProps) {
   const currentUser = useContext(AuthContext);
-  const setModalState = useModalStore(state => state.setModalState);
+  const setModalState = useModalStore((state) => state.setModalState);
 
   return (
     <div
@@ -130,21 +160,20 @@ function DropdownMenu({ chat, menuOpen, infoData, showInfo, setOptionsOpen }: Dr
 }
 
 function Chat() {
-
   // Info panel
-  const showGroupInfo = useInfoStore(state => state.showGroupInfo);
-  const showUserInfo = useInfoStore(state => state.showUserInfo);
-  const closeInfo = useInfoStore(state => state.closeInfo);
+  const showGroupInfo = useInfoStore((state) => state.showGroupInfo);
+  const showUserInfo = useInfoStore((state) => state.showUserInfo);
+  const closeInfo = useInfoStore((state) => state.closeInfo);
 
   // Fetch actions and data for this chat from zustand store
-  const addMessage = useChatsStore(state => state.addMessage);
-  const setInputBuffer = useChatsStore(state => state.setInputBuffer);
-  const currentChatId = useChatsStore(state => state.currentChatId);
-  const chats = useChatsStore(state => state.chats);
-  const clearUnread = useChatsStore(state => state.clearUnread);
+  const addMessage = useChatsStore((state) => state.addMessage);
+  const setInputBuffer = useChatsStore((state) => state.setInputBuffer);
+  const currentChatId = useChatsStore((state) => state.currentChatId);
+  const chats = useChatsStore((state) => state.chats);
+  const clearUnread = useChatsStore((state) => state.clearUnread);
 
   // fetch messages for current chat
-  const chat = chats.find(c => c.id === currentChatId) as GroupType | DMType;
+  const chat = chats.find((c) => c.id === currentChatId) as GroupType | DMType;
   const messages = chat.messages;
 
   // Message dropdown
@@ -153,40 +182,45 @@ function Chat() {
   // Chat dropdown
   const [optionsOpen, setOptionsOpen] = useState(false);
 
-  // Message input
+  // Jump to bottom button
+  const [showJumpButton, setShowJumpButton] = useState(false);
 
+  // Message input
   function handleInput(e: React.FormEvent<HTMLTextAreaElement>) {
-    console.log("Fired", e.currentTarget.value);
     setInputBuffer(chat.id, e.currentTarget.value);
   }
 
+  // Websockets
+  const sendMessage = useWebSockets();
+
   function handleSend() {
-    if (chat.inputBuffer === '') return;
-    addMessage(chat.id);
-    setInputBuffer(chat.id, '');
+    if (chat.inputBuffer === "") return;
+    // addMessage(chat.id, chat.inputBuffer);
+    sendMessage(chat.inputBuffer);
+    setInputBuffer(chat.id, "");
   }
 
   function handleClick(id: string): void {
     open === id ? setOpen(null) : setOpen(id);
     setOptionsOpen(false);
-  }  
-
+  }
 
   // Close info panel every time chat changes
   useEffect(() => {
-    clearUnread();    
+    clearUnread();
     closeInfo();
     setOpen(null);
     setOptionsOpen(false);
-  }, [currentChatId])
-
+    scrollToBottom(false);
+  }, [currentChatId]);
 
   const infoOpen = useInfoStore((state) => state.infoOpen);
   const closeChat = useChatsStore((state) => state.closeChat);
-  const modalState = useModalStore(state => state.modalState);
+  const modalState = useModalStore((state) => state.modalState);
 
-  // Escape key click handler
+  // Event handlers and other side effects side
   useEffect(() => {
+    // Escape key click handler
     const handleEscPress = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         if (modalState !== null) return;
@@ -194,14 +228,58 @@ function Chat() {
         return closeChat();
       }
     };
-
     window.addEventListener("keydown", handleEscPress);
 
     return () => {
       window.removeEventListener("keydown", handleEscPress);
     };
   }, [infoOpen, modalState]);
-  
+
+  // Refs for scrolling purposes
+  const messagesRef = useRef(null);
+  const messagesEndRef = useRef(null);
+
+  function getScrollDiff() {
+    const msg = messagesRef.current as unknown as HTMLElement;
+    return msg.scrollHeight - (msg.scrollTop + msg.clientHeight);
+  }
+
+  function handleScroll() {
+    if (getScrollDiff() > 300) setShowJumpButton(true);
+    else setShowJumpButton(false);
+  }
+
+  function conditionalScrollToBottom() {
+    if (getScrollDiff() < 300) scrollToBottom();
+  }
+
+  function scrollToBottom(smooth = true) {
+    const bottom = messagesEndRef.current as unknown as HTMLElement;
+    bottom.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
+  }
+
+  // Scroll to bottom when a new message is received
+  useEffect(() => {
+    type MessageData = {
+      type: "chat-message";
+      chatId: string;
+      username: string;
+      content: string;
+    };
+    const onChatMessage = (messageData: MessageData) => {
+      setTimeout(() => {
+        // adding new message to chat store
+        handleScroll();
+        scrollToBottom();
+      }, 50);
+    };
+
+    emitter.on("chatMessage", onChatMessage);
+
+    return () => {
+      emitter.off("chatMessage", onChatMessage);
+    };
+  }, []);
 
   return (
     <main className="flex flex-col bg-slate-200 h-screen w-full overflow-x-hidden">
@@ -266,7 +344,11 @@ function Chat() {
       </div>
 
       {/* Messages container */}
-      <div className="flex flex-col px-4 pt-4 pb-4 w-full h-full overflow-y-auto">
+      <div
+        className="flex flex-col px-4 pt-4 pb-4 w-full h-full overflow-y-auto"
+        onScroll={handleScroll}
+        ref={messagesRef}
+      >
         {messages.map((m) => (
           <Message
             key={m.id}
@@ -279,10 +361,23 @@ function Chat() {
             handleClick={handleClick}
           />
         ))}
+        <div id="messages-end" ref={messagesEndRef} />
       </div>
 
       {/* Chat footer */}
-      <div className="flex-shrink-0 min-h-[5rem] w-full px-10 py-4 bg-slate-300 flex flex-row items-end gap-4">
+      <div className="flex-shrink-0 min-h-[5rem] w-full px-10 py-4 bg-slate-300 flex flex-row items-end gap-4 relative">
+        {/* Scroll to bottom button */}
+        {showJumpButton && (
+          <div className="absolute z-20 -top-12 left-0 right-0 flex justify-center">
+            <button
+              className="bg-slate-400 text-lg text-slate-100 font-semibold px-6 py-1 rounded-full outline-none"
+              onClick={() => scrollToBottom()}
+            >
+              Scroll to Bottom
+            </button>
+          </div>
+        )}
+
         {/* Text input */}
         <TextareaAutosize
           className="bg-slate-200 rounded-md py-3 px-4 flex-grow outline-none resize-none"
@@ -307,4 +402,4 @@ function Chat() {
   );
 }
 
-export default Chat
+export default Chat;

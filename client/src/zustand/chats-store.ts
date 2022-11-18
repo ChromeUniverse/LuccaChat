@@ -89,7 +89,8 @@ export const sampleChat1: GroupType = {
   createdBy: user,
   isPublic: true,
   name: "Pessoal 2.0",
-  description: "A very cool group",
+  description:
+    "A very cool group! Memes, codeforces and competitive programming shenaningans, Minecraft, Bedwars, Synctube, and more!",
   inviteCode: nanoid(),
   latest: new Date(),
   unread: 1,
@@ -131,7 +132,7 @@ interface State {
     isPublic: boolean
   ) => void;
   fetchMessages: (chat: string) => MessageType[];
-  addMessage: (chatId: string) => void;
+  addMessage: (chatId: string, content: string) => void;
   deleteMessage: (chatId: string, messageId: string) => void;
   clearUnread: (chatId?: string) => void;
 }
@@ -141,7 +142,7 @@ export const useChatsStore = create<State>()(
     (set, get) => ({
       chats: [sampleChat1, sampleChat2],
 
-      currentChatId: null,
+      currentChatId: "1",
 
       closeChat: () => {
         set((state) => ({ ...state, currentChatId: null }));
@@ -286,32 +287,26 @@ export const useChatsStore = create<State>()(
       },
 
       // Creates a new message and adds it to the chat with the specified ID
-      addMessage: (chatId) => {
+      addMessage: (chatId, content) => {
         // console.log('did we even get this far?');
-        const chats = get().chats;
-        const targetChatIndex = chats.findIndex((c) => c.id === chatId);
-        const targetChat = chats[targetChatIndex];
-        console.log(targetChat);
-
         const newMsg: MessageType = {
           id: nanoid(),
           sender: user,
-          content: targetChat.inputBuffer,
+          content: content,
           createdAt: new Date(),
         };
 
         set((state) => {
           return {
-            ...state,
-            chats: [
-              ...chats.slice(0, targetChatIndex),
-              {
-                ...targetChat,
-                latest: new Date(),
-                messages: [...targetChat.messages, newMsg],
-              },
-              ...chats.slice(targetChatIndex + 1),
-            ],
+            chats: get().chats.map((chat) =>
+              chat.id === chatId
+                ? {
+                    ...chat,
+                    latest: new Date(),
+                    messages: [...chat.messages, newMsg],
+                  }
+                : chat
+            ),
           };
         });
       },
