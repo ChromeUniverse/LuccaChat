@@ -15,6 +15,7 @@ model User {
   createdAt        DateTime  @default(now())
   name             String
   handle           String    @unique
+  email            String    @unique
   messages         Message[]
   chats            Chat[]    @relation("member")
   createdGroups    Chat[]    @relation("creator")
@@ -26,9 +27,9 @@ model Message {
   id        String   @id @unique @default(uuid())
   createdAt DateTime @default(now())
   content   String
-  User      User     @relation(fields: [authorId], references: [id])
+  author    User     @relation(fields: [authorId], references: [id])
   authorId  String
-  Chat      Chat     @relation(fields: [chatId], references: [id])
+  chat      Chat     @relation(fields: [chatId], references: [id])
   chatId    String
 }
 
@@ -36,7 +37,7 @@ model Chat {
   id          String    @id @unique @default(uuid())
   createdAt   DateTime  @default(now())
   type        ChatType
-  latest      DateTime
+  latest      DateTime  @default(now())
   messages    Message[]
   members     User[]    @relation("member")
   name        String?
@@ -53,9 +54,12 @@ enum ChatType {
 }
 
 model Request {
-  id         String @id @unique @default(uuid())
-  Receiver   User   @relation("inbound", fields: [receiverId], references: [id])
+  id         String   @id @unique @default(uuid())
+  createdAt  DateTime @default(now())
+  receiver   User     @relation("inbound", fields: [receiverId], references: [id])
   receiverId String
-  Sender     User   @relation("outbound", fields: [senderId], references: [id])
+  sender     User     @relation("outbound", fields: [senderId], references: [id])
   senderId   String
+
+  @@unique([receiverId, senderId])
 }
