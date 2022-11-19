@@ -1,43 +1,55 @@
-import React, { useState } from 'react'
+import React, { useState } from "react";
 
 // Components
-import avatar from '../assets/avatar.jpeg'
-import Contact from './Contact'
+import avatar from "../assets/avatar.jpeg";
+import Contact from "./Contact";
 
 // Font Awesome
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowRightFromBracket, faGear, faMagnifyingGlass, faPlus, faRightFromBracket, faUser } from '@fortawesome/free-solid-svg-icons';
-import { faCommentDots } from '@fortawesome/free-regular-svg-icons';
-import { RequestType } from '../data';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faArrowRightFromBracket,
+  faGear,
+  faMagnifyingGlass,
+  faPlus,
+  faRightFromBracket,
+  faUser,
+} from "@fortawesome/free-solid-svg-icons";
+import { faCommentDots } from "@fortawesome/free-regular-svg-icons";
+import { RequestType } from "../data";
 
 // Zustand
-import { useChatsStore } from '../zustand/chats-store';
-import Group from './Group';
-import { useModalStore } from '../zustand/modals-store';
-import { useRequestsStore } from '../zustand/requests-store';
-import Request from './Request';
+import { useChatsStore } from "../zustand/chats-store";
+import Group from "./Group";
+import { useModalStore } from "../zustand/modals-store";
+import { useRequestsStore } from "../zustand/requests-store";
+import Request from "./Request";
+
+// React Query
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import fetchChats from "../api/fetchChats";
 
 const Divider = () => {
-  return <hr className="bg-black border-none w-full h-[0.1rem] rounded-full" />
-}
+  return <hr className="bg-black border-none w-full h-[0.1rem] rounded-full" />;
+};
 
-type Props = {}
+type Props = {};
 
-function Sidebar({ }: Props) {
-  
+function Sidebar({}: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [toggle, setToggle] = useState(false);
-  const [tab, setTab] = useState<'chats' | 'requests'>('chats');
+  const [tab, setTab] = useState<"chats" | "requests">("chats");
 
   // Fetch chats, sort by latest first
-  const chats = useChatsStore(state => state.chats);
-  const sortedChats = chats.sort((c1, c2) => c2.latest.getTime() - c1.latest.getTime());
+  const chats = useChatsStore((state) => state.chats);
+  const sortedChats = chats.sort(
+    (c1, c2) => c2.latest.getTime() - c1.latest.getTime()
+  );
 
   // Fetch requests
-  const requests = useRequestsStore(state => state.requests);
+  const requests = useRequestsStore((state) => state.requests);
 
   // Modal controls
-  const setModalState = useModalStore(state => state.setModalState);
+  const setModalState = useModalStore((state) => state.setModalState);
 
   return (
     <section className="w-[350px] bg-slate-100 flex flex-col h-screen flex-shrink-0">
@@ -86,7 +98,10 @@ function Sidebar({ }: Props) {
           `}
           >
             {/* Account */}
-            <div className="flex justify-between items-center cursor-pointer" onClick={() => setModalState('account-settings')}>
+            <div
+              className="flex justify-between items-center cursor-pointer"
+              onClick={() => setModalState("account-settings")}
+            >
               <p className="font-semibold text-xl">Account</p>
               <FontAwesomeIcon
                 className="cursor-pointer"
@@ -105,7 +120,7 @@ function Sidebar({ }: Props) {
               <div
                 className={`
                   h-8 w-16 rounded-full relative cursor-pointer transition-all
-                  ${toggle ? 'bg-blue-400' : 'bg-slate-400'}
+                  ${toggle ? "bg-blue-400" : "bg-slate-400"}
                 `}
                 onClick={() => setToggle((prev) => !prev)}
               >
@@ -170,7 +185,9 @@ function Sidebar({ }: Props) {
             {/* Badge */}
             {requests.length !== 0 && (
               <div className="bg-slate-400 w-6 h-6 rounded-full flex items-center justify-center">
-                <p className="font-bold text-sm text-white">{requests.length}</p>
+                <p className="font-bold text-sm text-white">
+                  {requests.length}
+                </p>
               </div>
             )}
           </div>
@@ -206,7 +223,7 @@ function Sidebar({ }: Props) {
                   <Contact
                     key={chat.id}
                     user={chat.contact}
-                    unread={chat.unread}
+                    // unread={chat.unread}
                     chatId={chat.id}
                   />
                 ) : (
@@ -214,7 +231,7 @@ function Sidebar({ }: Props) {
                     key={chat.id}
                     name={chat.name}
                     members={chat.members.length}
-                    unread={chat.unread}
+                    // unread={chat.unread}
                     chatId={chat.id}
                   />
                 );
@@ -248,7 +265,7 @@ function Sidebar({ }: Props) {
           // Requests container
           <div className="mt-4 px-2 w-full flex flex-col gap-4">
             {requests.map((r) => (
-              <Request request={r} />
+              <Request key={r.id} request={r} />
             ))}
           </div>
         )}
@@ -269,4 +286,4 @@ function Sidebar({ }: Props) {
   );
 }
 
-export default Sidebar
+export default Sidebar;
