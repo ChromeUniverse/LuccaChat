@@ -1,5 +1,5 @@
 import React from "react";
-import creeper from '../assets/creeper.webp'
+import creeper from "../assets/creeper.webp";
 import { useChatsStore } from "../zustand/chats-store";
 
 interface Props {
@@ -10,15 +10,14 @@ interface Props {
 }
 
 function Group({ name, members, chatId, unread }: Props) {
-
-  const currentChatId = useChatsStore(state => state.currentChatId);
-  const setChatId = useChatsStore(state => state.setCurrentChatId);
+  const currentChatId = useChatsStore((state) => state.currentChatId);
+  const setChatId = useChatsStore((state) => state.setCurrentChatId);
 
   return (
     <div
       className={`
         px-3 py-2 w-full flex items-center gap-3 hover:bg-slate-200 rounded-lg cursor-pointer
-        ${chatId === currentChatId ? 'bg-slate-200' : ''}
+        ${chatId === currentChatId ? "bg-slate-200" : ""}
       `}
       onClick={() => {
         if (chatId) setChatId(chatId);
@@ -36,11 +35,11 @@ function Group({ name, members, chatId, unread }: Props) {
       </div>
 
       {/* Unread message count */}
-      {chatId && unread !== 0 && (
+      {/* {chatId && unread !== 0 && (
         <div className="min-w-[1.5rem] px-2 h-6 bg-slate-400 rounded-full ml-auto flex justify-center items-center text-slate-100 font-bold text-sm">
           {unread}
         </div>
-      )}
+      )} */}
     </div>
   );
 }

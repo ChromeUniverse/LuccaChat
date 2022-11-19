@@ -1,5 +1,5 @@
 import React from "react";
-import avatar from '../assets/avatar.jpeg'
+import avatar from "../assets/avatar.jpeg";
 import { UserType } from "../data";
 import { useChatsStore } from "../zustand/chats-store";
 
@@ -10,10 +10,9 @@ interface Props {
   highlight?: boolean;
 }
 
-function Contact({ user, chatId, unread = 0, highlight = false}: Props) {
-  
-  const currentChatId = useChatsStore(state => state.currentChatId);
-  const setChatId = useChatsStore(state => state.setCurrentChatId);
+function Contact({ user, chatId, unread = 0, highlight = false }: Props) {
+  const currentChatId = useChatsStore((state) => state.currentChatId);
+  const setChatId = useChatsStore((state) => state.setCurrentChatId);
 
   return (
     <div
@@ -36,11 +35,11 @@ function Contact({ user, chatId, unread = 0, highlight = false}: Props) {
       </div>
 
       {/* Unread message count */}
-      {chatId && unread !== 0 && (
+      {/* {chatId && unread !== 0 && (
         <div className="min-w-[1.5rem] px-2 h-6 bg-slate-400 rounded-full ml-auto flex justify-center items-center text-slate-100 font-bold text-sm">
           {unread}
         </div>
-      )}
+      )} */}
     </div>
   );
 }
