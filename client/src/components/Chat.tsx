@@ -191,7 +191,7 @@ function Chat() {
   }
 
   // Websockets
-  const sendMessage = useWebSockets();
+  const { sendMessage } = useWebSockets();
 
   function handleSend() {
     if (chat.inputBuffer === "") return;
@@ -260,24 +260,17 @@ function Chat() {
 
   // Scroll to bottom when a new message is received
   useEffect(() => {
-    type MessageData = {
-      type: "chat-message";
-      chatId: string;
-      username: string;
-      content: string;
-    };
-    const onChatMessage = (messageData: MessageData) => {
+    const onChatMessage = () => {
       setTimeout(() => {
-        // adding new message to chat store
         handleScroll();
         scrollToBottom();
       }, 50);
     };
 
-    emitter.on("chatMessage", onChatMessage);
+    emitter.on("addChatMessage", onChatMessage);
 
     return () => {
-      emitter.off("chatMessage", onChatMessage);
+      emitter.off("addChatMessage", onChatMessage);
     };
   }, []);
 
@@ -300,15 +293,16 @@ function Chat() {
             <>
               <h3 className="font-normal text-xl">{chat.name}</h3>
               <p className="font-normal text-sm">
-                {chat.members.length} participants •{" "}
-                {Math.floor(Math.random() * (chat.members.length + 1))} online
+                {chat.members.length} participants
+                {/* {chat.members.length} participants •{" "} */}
+                {/* {Math.floor(Math.random() * (chat.members.length + 1))} online */}
               </p>
             </>
           )}
           {chat.type === "dm" && (
             <>
               <h3 className="font-normal text-xl">{chat.contact.name}</h3>
-              <p className="font-normal text-sm">Online</p>
+              {/* <p className="font-normal text-sm">Online</p> */}
             </>
           )}
         </div>
