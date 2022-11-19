@@ -3,6 +3,14 @@ import { MessageType } from "../data";
 import { useChatsStore, user } from "../zustand/chats-store";
 import { z } from "zod";
 import { emitter } from "../App";
+import {
+  baseDataSchema,
+  addMessageSchema,
+  deleteMessageSchema,
+  deleteMessageSchemaType,
+} from "../../../server/src/zod/schemas";
+import { JsonSuperParse } from "../misc";
+import { messageSchema } from "../../../server/src/zod/api-messages";
 
 let ws: WebSocket;
 let consumers = 0;
@@ -11,14 +19,28 @@ function sendMessage(content: string) {
   const currentChatId = useChatsStore.getState().currentChatId;
 
   const data = {
-    type: "chat-message",
+    type: "add-message",
+    userId: user.id,
     chatId: currentChatId,
-    username: user.name,
     content: content,
   };
 
   ws.send(JSON.stringify(data));
   console.log("sent!");
+}
+
+function deleteMessage(chatId: string, messageId: string) {
+  const currentChatId = useChatsStore.getState().currentChatId;
+
+  const data: deleteMessageSchemaType = {
+    type: "delete-message",
+    authorId: user.id,
+    chatId: chatId,
+    messageId: messageId,
+  };
+
+  ws.send(JSON.stringify(data));
+  console.log("sent delete message!");
 }
 
 export default function useWebSockets() {
@@ -42,31 +64,22 @@ export default function useWebSockets() {
     // Listen for messages
     ws.addEventListener("message", (event) => {
       console.log("Message from server ", event.data);
-
-      const jsonData = JSON.parse(event.data);
-
-      // Base message validation
-      const baseDataSchema = z.object({
-        type: z.enum(["chat-message"]),
-      });
+      const jsonData = JsonSuperParse(event.data);
       const data = baseDataSchema.parse(jsonData);
 
       // Process chat messages
-      if (data.type === "chat-message") {
-        // Zod validation
-        const messageDataSchema = baseDataSchema.extend({
-          chatId: z.string(),
-          username: z.string(),
-          content: z.string(),
-        });
-
-        type messageDataSchemaType = z.infer<typeof messageDataSchema>;
-
-        const messageData = messageDataSchema.parse(jsonData);
-        emitter.emit("chatMessage", messageData);
+      if (data.type === "add-message") {
+        const messageData = messageSchema.parse(jsonData);
+        emitter.emit("addChatMessage", messageData);
 
         const addMessage = useChatsStore.getState().addMessage;
-        addMessage(messageData.chatId, messageData.content);
+        addMessage(messageData.chatId, messageData);
+      }
+
+      if (data.type === "delete-message") {
+        const messageData = deleteMessageSchema.parse(jsonData);
+        const deleteMessage = useChatsStore.getState().deleteMessage;
+        deleteMessage(messageData.chatId, messageData.messageId);
       }
     });
     return () => {
@@ -77,5 +90,5 @@ export default function useWebSockets() {
     };
   }, []);
 
-  return sendMessage;
+  return { sendMessage, deleteMessage };
 }
