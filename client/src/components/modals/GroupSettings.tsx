@@ -2,7 +2,12 @@ import React, { useState } from "react";
 import creeper from "../../assets/creeper.webp";
 
 // Font Awesome
-import { faAngleRight, faArrowLeft, faRotateRight, faXmark } from "@fortawesome/free-solid-svg-icons";
+import {
+  faAngleRight,
+  faArrowLeft,
+  faRotateRight,
+  faXmark,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 // Zustand
@@ -17,16 +22,18 @@ type Props = {};
 
 function GroupSettings({}: Props) {
   const setModalState = useModalStore((state) => state.setModalState);
-  const getCurrentChat = useChatsStore(state => state.getCurrentChat);
+  const getCurrentChat = useChatsStore((state) => state.getCurrentChat);
   const group = getCurrentChat() as GroupType;
-  const resetInviteCode = useChatsStore(state => state.resetInviteCode);
-  const updateGroupSettings = useChatsStore(state => state.updateGroupSettings); 
+  const resetInviteCode = useChatsStore((state) => state.resetInviteCode);
+  const updateGroupSettings = useChatsStore(
+    (state) => state.updateGroupSettings
+  );
 
   const [name, setName] = useState(group.name);
   const [description, setDescription] = useState(group.description);
   const [isPublic, setIsPublic] = useState(group.isPublic);
-  const [prompt, setPrompt] = useState('');
-  const [updatePrompt, setUpdatePrompt] = useState('');
+  const [prompt, setPrompt] = useState("");
+  const [updatePrompt, setUpdatePrompt] = useState("");
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setName(e.target.value);
@@ -37,9 +44,12 @@ function GroupSettings({}: Props) {
   }
 
   const debouncedClearPrompt = useDebouncedCallback(() => setPrompt(""), 1000);
-  const debouncedClearUpdatePrompt = useDebouncedCallback(() => setUpdatePrompt(""), 1000);
+  const debouncedClearUpdatePrompt = useDebouncedCallback(
+    () => setUpdatePrompt(""),
+    1000
+  );
 
-  function handleInviteClick(type: 'copy' | 'reset') {
+  function handleInviteClick(type: "copy" | "reset") {
     let timeout;
 
     clearTimeout(timeout);
@@ -48,7 +58,7 @@ function GroupSettings({}: Props) {
       setPrompt("Copied!");
     } else {
       resetInviteCode(group.id);
-      setPrompt('Invite reset!')
+      setPrompt("Invite reset!");
     }
 
     debouncedClearPrompt();
@@ -56,7 +66,7 @@ function GroupSettings({}: Props) {
 
   function handleUpdate() {
     updateGroupSettings(group.id, name, description, isPublic);
-    setUpdatePrompt('Updated!')
+    setUpdatePrompt("Updated!");
     debouncedClearUpdatePrompt();
   }
 
@@ -105,7 +115,7 @@ function GroupSettings({}: Props) {
             placeholder="Simply the best group chat ever created. Change my mind"
             onInput={handleInput}
             value={description}
-            rows={2}
+            rows={3}
           ></textarea>
 
           {/* Public/Private toggle */}
@@ -150,13 +160,13 @@ function GroupSettings({}: Props) {
                 className="text-slate-700 hover:text-slate-500 cursor-pointer"
                 size="lg"
                 icon={faClipboard}
-                onClick={() => handleInviteClick('copy')}
+                onClick={() => handleInviteClick("copy")}
               />
               <FontAwesomeIcon
                 className="text-slate-700 hover:text-slate-500 cursor-pointer"
                 size="lg"
                 icon={faRotateRight}
-                onClick={() => handleInviteClick('reset')}
+                onClick={() => handleInviteClick("reset")}
               />
             </div>
             <div className="flex items-center gap-3 w-full py-3 px-0 bg-slate-200 rounded-xl outline-none select-none">
@@ -170,10 +180,9 @@ function GroupSettings({}: Props) {
 
       {/* Modal footer */}
       <div className="flex w-full pt-6 items-center gap-6">
-        
         {/* Update Prompt */}
         <p className="ml-auto">{updatePrompt}</p>
-        
+
         {/* Update Button */}
         <div
           className="bg-slate-400 px-6 h-14 rounded-full flex-shrink-0 cursor-pointer flex items-center justify-center hover:bg-opacity-50"
