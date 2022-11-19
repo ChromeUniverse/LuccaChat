@@ -6,6 +6,16 @@ import Chat from "./components/Chat";
 import Sidebar from "./components/Sidebar";
 import InfoPanel from "./components/InfoPanel";
 
+// React Query
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  QueryClient,
+  QueryClientProvider,
+} from "@tanstack/react-query";
+const queryClient = new QueryClient();
+
 // Zustand
 import { useInfoStore } from "./zustand/info-panel-store";
 import { GroupType, UserType } from "./data";
@@ -21,9 +31,14 @@ import useWebSockets from "./hooks/useWebSockets";
 
 // Event Emitter
 import mitt from "mitt";
+import fetchChats from "./api/fetchChats";
+import fetchMessages from "./api/fetchMessages";
+import fetchRequests from "./api/fetchRequests";
+import { useRequestsStore } from "./zustand/requests-store";
 
 type Events = {
-  chatMessage: any;
+  addChatMessage: any;
+  deleteChatMessage: any;
 };
 
 export const emitter = mitt<Events>();
@@ -37,40 +52,70 @@ function App() {
   const browserOpen = useBrowserStore((state) => state.open);
   useWebSockets();
 
+  useEffect(() => {
+    async function chatsInit() {
+      // Zustand store actions
+      const createNewDM = useChatsStore.getState().createNewDM;
+      const createNewGroup = useChatsStore.getState().createNewGroup;
+      const addMessage = useChatsStore.getState().addMessage;
+      const addRequest = useRequestsStore.getState().addRequest;
+
+      // Fetching chats
+      const chats = await fetchChats();
+      chats.forEach(async (chatData) => {
+        // Creating a new chat
+        chatData.type === "DM"
+          ? createNewDM(chatData)
+          : createNewGroup(chatData);
+
+        // Fetching this chat's messages
+        const messages = await fetchMessages(chatData.id);
+        messages.forEach((msgData) => addMessage(chatData.id, msgData));
+      });
+
+      // Fetching requests
+      const requests = await fetchRequests();
+      requests.forEach((reqData) => addRequest(reqData));
+    }
+    chatsInit();
+  }, []);
+
   return (
-    <AuthContext.Provider value={user}>
-      <div className="flex w-screen h-screen relative">
-        <ModalWrapper />
-        <Sidebar />
+    <QueryClientProvider client={queryClient}>
+      <AuthContext.Provider value={user}>
+        <div className="flex w-screen h-screen relative">
+          <ModalWrapper />
+          <Sidebar />
 
-        {/* Display Home or Chat views */}
-        {currentChatId === null ? (
-          browserOpen ? (
-            <PublicGroupBrowser />
+          {/* Display Home or Chat views */}
+          {currentChatId === null ? (
+            browserOpen ? (
+              <PublicGroupBrowser />
+            ) : (
+              <Home />
+            )
           ) : (
-            <Home />
-          )
-        ) : (
-          <>
-            <div className="h-screen w-0.5 bg-slate-100 flex-shrink-0"></div>
-            <Chat />
-          </>
-        )}
+            <>
+              <div className="h-screen w-0.5 bg-slate-100 flex-shrink-0"></div>
+              <Chat />
+            </>
+          )}
 
-        {/* Display info panel */}
-        {infoOpen !== null && (
-          <>
-            <div className="h-screen w-0.5 bg-slate-100 flex-shrink-0"></div>
-            {infoOpen === "user" && (
-              <InfoPanel type={infoOpen} user={infoData as UserType} />
-            )}
-            {infoOpen === "group" && (
-              <InfoPanel type={infoOpen} group={infoData as GroupType} />
-            )}
-          </>
-        )}
-      </div>
-    </AuthContext.Provider>
+          {/* Display info panel */}
+          {infoOpen !== null && (
+            <>
+              <div className="h-screen w-0.5 bg-slate-100 flex-shrink-0"></div>
+              {infoOpen === "user" && (
+                <InfoPanel type={infoOpen} user={infoData as UserType} />
+              )}
+              {infoOpen === "group" && (
+                <InfoPanel type={infoOpen} group={infoData as GroupType} />
+              )}
+            </>
+          )}
+        </div>
+      </AuthContext.Provider>
+    </QueryClientProvider>
   );
 }
 
