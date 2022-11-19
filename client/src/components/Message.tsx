@@ -14,7 +14,7 @@ import { UserType } from "../data";
 import { useInfoStore } from "../zustand/info-panel-store";
 import { useChatsStore } from "../zustand/chats-store";
 import { AuthContext } from "../App";
-
+import useWebSockets from "../hooks/useWebSockets";
 
 interface MenuLineProps {
   text: string;
@@ -26,7 +26,14 @@ interface MenuLineProps {
 }
 
 // A line inside the dropdown menu
-function MenuLine({text, icon, danger = false, onClickArgs = [], onClick = () => {}, setOpen = () => {}} : MenuLineProps) {
+function MenuLine({
+  text,
+  icon,
+  danger = false,
+  onClickArgs = [],
+  onClick = () => {},
+  setOpen = () => {},
+}: MenuLineProps) {
   return (
     <div
       className={`flex w-full justify-between px-2 py-1.5 rounded-md cursor-pointer hover:bg-slate-400 hover:bg-opacity-30 ${
@@ -49,7 +56,6 @@ function MenuLine({text, icon, danger = false, onClickArgs = [], onClick = () =>
   );
 }
 
-
 interface DropdownMenuProps {
   chatId: string;
   messageId: string;
@@ -61,8 +67,15 @@ interface DropdownMenuProps {
 }
 
 // The message's dropdown menu
-function DropdownMenu({ chatId, messageId, menuOpen, setOpen, sender, showInfo, deleteMessage }: DropdownMenuProps) {
-  
+function DropdownMenu({
+  chatId,
+  messageId,
+  menuOpen,
+  setOpen,
+  sender,
+  showInfo,
+  deleteMessage,
+}: DropdownMenuProps) {
   const currentUser = useContext(AuthContext);
 
   return (
@@ -95,7 +108,6 @@ function DropdownMenu({ chatId, messageId, menuOpen, setOpen, sender, showInfo, 
   );
 }
 
-
 interface Props {
   chatId: string;
   messageId: string;
@@ -106,10 +118,17 @@ interface Props {
   handleClick: (id: string) => void;
 }
 
-function Message({ chatId, messageId, open, setOpen, sender, content, handleClick }: Props) {
-  
-  const showUserInfo = useInfoStore(state => state.showUserInfo);
-  const deleteMessage = useChatsStore(state => state.deleteMessage);
+function Message({
+  chatId,
+  messageId,
+  open,
+  setOpen,
+  sender,
+  content,
+  handleClick,
+}: Props) {
+  const showUserInfo = useInfoStore((state) => state.showUserInfo);
+  const { deleteMessage } = useWebSockets();
 
   return (
     <div
