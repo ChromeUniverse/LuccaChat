@@ -29,7 +29,7 @@ model Message {
   content   String
   author    User     @relation(fields: [authorId], references: [id])
   authorId  String
-  chat      Chat     @relation(fields: [chatId], references: [id])
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
   chatId    String
 }
 
