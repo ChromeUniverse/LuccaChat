@@ -2,6 +2,8 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import cors from "cors";
+import { z } from "zod";
+import { currentUserSchema } from "./zod/schemas";
 
 // API router config
 const api = express.Router();
@@ -41,6 +43,26 @@ api.get("/", (req, res) => {
 //
 // DELETE:
 // [ ] /api/requests/:requestId         -> deletes this request (reject/accept)
+
+// NOTE: Add auth middleware!!!
+api.get("/user", async (req, res) => {
+  const userId = "19c5cede-a9ae-4479-81c2-95dc9c0a0e37";
+  // const userId = "320b6aba-8860-40d4-98b7-db0713bba8ea";
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) return res.sendStatus(404);
+
+  const dataToSend: z.infer<typeof currentUserSchema> = {
+    id: user.id,
+    name: user.name,
+    handle: user.handle,
+    email: user.email,
+  };
+
+  res.json(dataToSend);
+});
 
 api.get("/users/:userId", async (req, res) => {
   const user = await prisma.user.findUnique({
