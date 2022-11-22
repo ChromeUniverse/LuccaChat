@@ -22,7 +22,7 @@ export const chatSchemaPrimitive = z.object({
   inviteCode: z.string().nullable(),
   createdAt: z.string(),
   type: z.enum(["DM", "GROUP"]),
-  isPublic: z.boolean(),
+  isPublic: z.boolean().nullable(),
   creatorId: z.string().nullable(),
   creator: userSchema.nullable(),
   _count: countSchema,
