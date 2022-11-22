@@ -15,105 +15,8 @@ import {
   ChatSchemaType,
   UserSchemaType,
 } from "../../../server/src/zod/api-chats";
-import { messageSchemaType } from "../zod/api-messages";
-// import { ChatSchemaType, UserSchemaType } from "../zod/schemas";
-
-// example Users
-
-// authed user:
-export const user: CurrentUserType = {
-  id: "19c5cede-a9ae-4479-81c2-95dc9c0a0e37",
-  pfp_url: avatar,
-  name: "Lucca Rodrigues",
-  handle: "lucca",
-  email: "lucca@gmail.com",
-};
-
-export const user1: UserType = {
-  id: "1",
-  pfp_url: avatar,
-  name: "User 1",
-  handle: "user1",
-};
-
-const user2: UserType = {
-  id: "2",
-  pfp_url: avatar,
-  name: "User 2",
-  handle: "user2",
-};
-
-const user3: UserType = {
-  id: "3",
-  pfp_url: avatar,
-  name: "User 3",
-  handle: "user3",
-};
-
-const user4: UserType = {
-  id: "4",
-  pfp_url: avatar,
-  name: "User 4",
-  handle: "user4",
-};
-
-const user5: UserType = {
-  id: "5",
-  pfp_url: avatar,
-  name: "User 5",
-  handle: "user5",
-};
-
-// example Messages
-const sampleMessage1: MessageType = {
-  id: nanoid(),
-  sender: user1,
-  content: "lorem ipsum? yeah right lmao, no lorem ipsum here bro 🤪",
-  createdAt: new Date(),
-};
-
-const sampleMessage2: MessageType = {
-  id: nanoid(),
-  sender: user2,
-  content: "yet another sample message",
-  createdAt: new Date(),
-};
-
-const sampleMessage3: MessageType = {
-  id: nanoid(),
-  sender: user2,
-  content: "here we have yet another sample message",
-  createdAt: new Date(),
-};
-
-// example chats
-export const sampleChat1: GroupType = {
-  id: "1",
-  type: "group",
-  group_pfp_url: creeper,
-  createdAt: new Date(),
-  createdBy: user,
-  isPublic: true,
-  name: "Pessoal 2.0",
-  description:
-    "A very cool group! Memes, codeforces and competitive programming shenaningans, Minecraft, Bedwars, Synctube, and more!",
-  inviteCode: nanoid(),
-  latest: new Date(),
-  // unread: 1,
-  messages: [sampleMessage1],
-  inputBuffer: "",
-  members: [user, user1, user2, user3, user4, user5],
-};
-
-const sampleChat2: DMType = {
-  id: "2",
-  type: "dm",
-  contact: user2,
-  latest: new Date(),
-  // unread: 2,
-  messages: [sampleMessage2, sampleMessage3],
-  inputBuffer: "",
-};
+import { messageSchemaType } from "../../../server/src/zod/api-messages";
+import { useUserStore } from "./user-store";
 
 interface State {
   chats: (GroupType | DMType)[];
@@ -126,9 +29,9 @@ interface State {
   setCurrentChatId: (chatId: string) => void;
   closeChat: () => void;
   setInputBuffer: (chatId: string, newInput: string) => void;
-  resetInviteCode: (chatId: string) => string;
+  setInviteCode: (groupId: string, inviteCode: string) => void;
   updateGroupSettings: (
-    chatId: string,
+    groupId: string,
     name: string,
     description: string,
     isPublic: boolean
@@ -136,7 +39,9 @@ interface State {
   fetchMessages: (chat: string) => MessageType[];
   addMessage: (chatId: string, data: messageSchemaType) => void;
   deleteMessage: (chatId: string, messageId: string) => void;
-  clearUnread: (chatId?: string) => void;
+  updateLatest: (chatId: string, newLatest: Date) => void;
+  chatHasUser: (chatId: string, userId: string) => boolean;
+  updateUserInfoInChats: (userId: string, handle: string, name: string) => void;
 }
 
 export const useChatsStore = create<State>()(
@@ -157,6 +62,7 @@ export const useChatsStore = create<State>()(
 
       createNewDM: (data) => {
         if (get().chats.findIndex((chat) => chat.id === data.id) !== -1) return;
+        const user = useUserStore.getState().user;
 
         // Find contact in list members (only has two entries)
         const contactData = (data.members as UserSchemaType[]).find(
@@ -194,7 +100,7 @@ export const useChatsStore = create<State>()(
           name: data.name as string,
           description: data.description as string,
           group_pfp_url: creeper,
-          isPublic: data.isPublic,
+          isPublic: data.isPublic as boolean,
           inviteCode: data.inviteCode as string,
           members: data.members.map((member) => ({
             ...member,
@@ -221,7 +127,13 @@ export const useChatsStore = create<State>()(
       getCurrentChat: () => {
         const chats = get().chats;
         const currentChatId = get().currentChatId;
-        return chats.find((c) => c.id === currentChatId) as GroupType | DMType;
+        const targetChat = chats.find((c) => c.id === currentChatId);
+        if (!targetChat)
+          throw new Error(
+            `target chat not found! Tried chat ID ${currentChatId}`
+          );
+
+        return targetChat as GroupType | DMType;
       },
 
       getChatById: (chatId) => {
@@ -243,10 +155,9 @@ export const useChatsStore = create<State>()(
         });
       },
 
-      resetInviteCode: (chatId) => {
-        const newInviteCode = nanoid();
+      setInviteCode: (groupId, inviteCode) => {
         // first check if this chat is a group
-        const chat = get().getChatById(chatId);
+        const chat = get().getChatById(groupId);
         if (chat === null) throw new Error("Chat not found");
         if (chat.type !== "group")
           throw new Error("You can't call this function on a DM chat!");
@@ -255,17 +166,16 @@ export const useChatsStore = create<State>()(
         set((state) => ({
           ...state,
           chats: get().chats.map((chat) =>
-            chat.id === chatId && chat.type === "group"
-              ? { ...chat, inviteCode: newInviteCode }
+            chat.id === groupId && chat.type === "group"
+              ? { ...chat, inviteCode: inviteCode }
               : chat
           ),
         }));
-        return newInviteCode;
       },
 
-      updateGroupSettings: (chatId, name, description, isPublic) => {
+      updateGroupSettings: (groupId, name, description, isPublic) => {
         // get chat by ID, perform sanity checks
-        const chat = get().getChatById(chatId);
+        const chat = get().getChatById(groupId);
         if (chat === null) throw new Error("Chat not found");
         if (chat.type !== "group") {
           throw new Error("You can't call this function on a DM chat!");
@@ -283,7 +193,7 @@ export const useChatsStore = create<State>()(
         set((state) => ({
           ...state,
           chats: get().chats.map((chat) =>
-            chat.id === chatId ? updatedGroup : chat
+            chat.id === groupId ? updatedGroup : chat
           ),
         }));
       },
@@ -320,7 +230,6 @@ export const useChatsStore = create<State>()(
                 // returning immutable state
                 return {
                   ...chat,
-                  latest: new Date(),
                   messages: [...chat.messages, newMsg],
                 };
               } else {
@@ -352,13 +261,82 @@ export const useChatsStore = create<State>()(
         });
       },
 
-      clearUnread: (chatId) => {
+      updateLatest: (chatId, newLatest) => {
+        // update chats immutably
         set((state) => ({
           ...state,
           chats: get().chats.map((chat) =>
-            chat.id === get().currentChatId ? { ...chat, unread: 0 } : chat
+            chat.id === chatId ? { ...chat, latest: newLatest } : chat
           ),
         }));
+      },
+
+      chatHasUser: (chatId, userId) => {
+        const chat = get().getChatById(chatId);
+        if (!chat) throw new Error("Chat not found");
+
+        if (chat.type === "dm") return true;
+        if (chat.type === "group") {
+          for (const member of chat.members) {
+            if (member.id === userId) return true;
+          }
+          return false;
+        }
+        return false;
+      },
+
+      updateUserInfoInChats: (userId: string, name: string, handle: string) => {
+        const chatHasUser = get().chatHasUser;
+        const newChats = get().chats.map((chat) => {
+          const hasUser = chatHasUser(chat.id, userId);
+
+          console.log(
+            `Chat ID ${chat.id}, type ${chat.type},  does ${
+              hasUser ? "" : "not"
+            } have user ID ${userId}`
+          );
+
+          if (hasUser) {
+            const newChat = {
+              ...chat,
+              messages: chat.messages.map((message) => ({
+                ...message,
+                sender:
+                  message.sender.id === userId
+                    ? {
+                        ...message.sender,
+                        handle: handle,
+                        name: name,
+                      }
+                    : message.sender,
+              })),
+            };
+
+            if (newChat.type === "dm") {
+              return {
+                ...newChat,
+                contact:
+                  newChat.contact.id === userId
+                    ? { ...newChat.contact, name: name, handle: handle }
+                    : newChat.contact,
+              };
+            } else {
+              return {
+                ...newChat,
+                members: newChat.members.map((m) =>
+                  m.id === userId ? { ...m, name: name, handle: handle } : m
+                ),
+                createdBy:
+                  newChat.createdBy.id === userId
+                    ? { ...newChat.createdBy, name: name, handle: handle }
+                    : newChat.createdBy,
+              };
+            }
+          } else {
+            return chat;
+          }
+        });
+        set((state) => ({ chats: newChats }));
       },
     }),
     {
