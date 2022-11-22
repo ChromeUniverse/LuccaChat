@@ -13,8 +13,8 @@ import {
 import { UserType } from "../data";
 import { useInfoStore } from "../zustand/info-panel-store";
 import { useChatsStore } from "../zustand/chats-store";
-import { AuthContext } from "../App";
 import useWebSockets from "../hooks/useWebSockets";
+import { useUserStore } from "../zustand/user-store";
 
 interface MenuLineProps {
   text: string;
@@ -76,7 +76,7 @@ function DropdownMenu({
   showInfo,
   deleteMessage,
 }: DropdownMenuProps) {
-  const currentUser = useContext(AuthContext);
+  const currentUser = useUserStore((state) => state.user);
 
   return (
     <div

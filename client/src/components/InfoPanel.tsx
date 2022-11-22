@@ -1,24 +1,34 @@
-import React, { useContext } from 'react'
+import React, { useContext } from "react";
 
 // Dummy pictures
 import avatar from "../assets/avatar.jpeg";
 import creeper from "../assets/creeper.webp";
 
 // Components
-import Group from './Group';
-import Contact from './Contact';
+import Group from "./Group";
+import Contact from "./Contact";
 
 // Font Awesome
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faBan, faXmark, IconDefinition } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faBan,
+  faXmark,
+  IconDefinition,
+} from "@fortawesome/free-solid-svg-icons";
 
 // Zustand store
-import { useInfoStore } from '../zustand/info-panel-store';
-import { GroupType, UserType } from '../data';
-import { AuthContext } from '../App';
-import { useChatsStore } from '../zustand/chats-store';
+import { useInfoStore } from "../zustand/info-panel-store";
+import { GroupType, UserType } from "../data";
+import { useChatsStore } from "../zustand/chats-store";
+import { useUserStore } from "../zustand/user-store";
 
-function FooterMenuLine({text, icon}: {text:string, icon: IconDefinition}) {
+function FooterMenuLine({
+  text,
+  icon,
+}: {
+  text: string;
+  icon: IconDefinition;
+}) {
   return (
     <div className="pl-3 py-2 flex justify-start items-center gap-3 hover:bg-slate-200 rounded-md cursor-pointer">
       <FontAwesomeIcon className="w-6 text-red-500" icon={icon} size="lg" />
@@ -29,33 +39,45 @@ function FooterMenuLine({text, icon}: {text:string, icon: IconDefinition}) {
 
 // helper function
 function formatDate(date: Date) {
-  return date.toLocaleDateString('default', {month: 'short', day: 'numeric', year: 'numeric'});
+  return date.toLocaleDateString("default", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
-
 interface Props {
-  type: 'user' | 'group';
-  user?: UserType,
-  group?: GroupType,
+  type: "user" | "group";
+  user?: UserType;
+  group?: GroupType;
 }
 
 function InfoPanel({ type, user, group }: Props) {
-
   const userData = user as UserType;
   const groupData = group as GroupType;
 
-  if (type === 'user' && !user) throw new Error(`Info panel is of type "user" but received no user object!`);
-  if (type === 'group' && !group) throw new Error(`Info panel is of type "group" but received no group object!`);
-  
-  const closeInfo = useInfoStore(state => state.closeInfo);
+  if (type === "user" && !user)
+    throw new Error(
+      `Info panel is of type "user" but received no user object!`
+    );
+  if (type === "group" && !group)
+    throw new Error(
+      `Info panel is of type "group" but received no group object!`
+    );
+
+  const closeInfo = useInfoStore((state) => state.closeInfo);
 
   // get current chat data
-  const getCurrentChat = useChatsStore(state => state.getCurrentChat);
+  const getCurrentChat = useChatsStore((state) => state.getCurrentChat);
   const currentChat = getCurrentChat();
 
   // Prevents user from accessing info panel about themselves
-  const currentUser = useContext(AuthContext);
-  if (userData !== undefined && userData.id === currentUser.id) throw new Error("Currently auth'd user shouldn't be able to view info about themselves!!");
+  const currentUser = useUserStore((state) => state.user);
+
+  if (userData !== undefined && userData.id === currentUser.id)
+    throw new Error(
+      "Currently auth'd user shouldn't be able to view info about themselves!!"
+    );
 
   return (
     <div className="w-[360px] h-screen flex-shrink-0 bg-slate-100 flex flex-col items-center">
@@ -81,7 +103,9 @@ function InfoPanel({ type, user, group }: Props) {
             {/* Group name, number of members */}
             <div className="flex flex-col gap-1 items-center">
               <p className="text-2xl font-semibold">{groupData.name}</p>
-              <p className="text-md">{groupData.isPublic ? 'Public' : 'Private'} group</p>
+              <p className="text-md">
+                {groupData.isPublic ? "Public" : "Private"} group
+              </p>
               <p className="text-sm text-center">
                 Created by{" "}
                 <span className="font-bold">@{groupData.createdBy.handle}</span>{" "}
@@ -97,19 +121,20 @@ function InfoPanel({ type, user, group }: Props) {
 
             {/* List of members */}
             <div className="px-6 mb-8 w-full flex flex-col mt-2">
-
               {/* Section title */}
               <p className="font-semibold py-2">
                 {groupData.members.length} members
               </p>
 
               {/* Group creator */}
-              <Contact user={groupData.createdBy} highlight/>
-              
+              <Contact user={groupData.createdBy} highlight />
+
               {/* Other group members */}
-              {groupData.members.filter(m => m.id !== groupData.createdBy.id).map((m) => (
-                <Contact key={m.id} user={m} />
-              ))}
+              {groupData.members
+                .filter((m) => m.id !== groupData.createdBy.id)
+                .map((m) => (
+                  <Contact key={m.id} user={m} />
+                ))}
             </div>
           </>
         )}
@@ -157,4 +182,4 @@ function InfoPanel({ type, user, group }: Props) {
   );
 }
 
-export default InfoPanel
+export default InfoPanel;

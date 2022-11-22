@@ -23,10 +23,7 @@ import Group from "./Group";
 import { useModalStore } from "../zustand/modals-store";
 import { useRequestsStore } from "../zustand/requests-store";
 import Request from "./Request";
-
-// React Query
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import fetchChats from "../api/fetchChats";
+import { useUserStore } from "../zustand/user-store";
 
 const Divider = () => {
   return <hr className="bg-black border-none w-full h-[0.1rem] rounded-full" />;
@@ -39,6 +36,9 @@ function Sidebar({}: Props) {
   const [toggle, setToggle] = useState(false);
   const [tab, setTab] = useState<"chats" | "requests">("chats");
 
+  // Fetch current user
+  const currentUser = useUserStore((state) => state.user);
+
   // Fetch chats, sort by latest first
   const chats = useChatsStore((state) => state.chats);
   const sortedChats = chats.sort(
@@ -47,6 +47,9 @@ function Sidebar({}: Props) {
 
   // Fetch requests
   const requests = useRequestsStore((state) => state.requests);
+  const sortedRequests = requests.sort(
+    (r1, r2) => r2.sentAt.getTime() - r1.sentAt.getTime()
+  );
 
   // Modal controls
   const setModalState = useModalStore((state) => state.setModalState);
@@ -62,8 +65,8 @@ function Sidebar({}: Props) {
 
         {/* Name */}
         <div className="flex flex-col pl-3">
-          <h3 className="font-normal text-xl">Lucca Rodrigues</h3>
-          <p className="font-bold text-sm">@lucca</p>
+          <h3 className="font-normal text-xl">{currentUser.name}</h3>
+          <p className="font-bold text-sm">@{currentUser.handle}</p>
         </div>
 
         {/* Dropdown menu container */}
@@ -264,7 +267,7 @@ function Sidebar({}: Props) {
         {tab === "requests" && (
           // Requests container
           <div className="mt-4 px-2 w-full flex flex-col gap-4">
-            {requests.map((r) => (
+            {sortedRequests.map((r) => (
               <Request key={r.id} request={r} />
             ))}
           </div>

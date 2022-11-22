@@ -4,15 +4,13 @@ import create from "zustand";
 // Test photo
 import creeper from "../assets/creeper.webp";
 import avatar from "../assets/avatar.jpeg";
-import { sampleChat1, useChatsStore } from "../zustand/chats-store";
+import { useChatsStore } from "../zustand/chats-store";
 import { GroupType } from "../data";
 
 interface State {
   open: boolean;
   setOpen: (newOpen: boolean) => void;
 }
-
-const chat = sampleChat1;
 
 export const useBrowserStore = create<State>((set) => ({
   open: false,

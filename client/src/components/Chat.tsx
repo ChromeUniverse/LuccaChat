@@ -31,10 +31,11 @@ import {
 import { useInfoStore } from "../zustand/info-panel-store";
 import { useChatsStore } from "../zustand/chats-store";
 import { ChatType, DMType, GroupType, UserType } from "../data";
-import { AuthContext, emitter } from "../App";
+import { emitter } from "../App";
 import { useModalStore } from "../zustand/modals-store";
 import { faClipboard } from "@fortawesome/free-regular-svg-icons";
 import useWebSockets from "../hooks/useWebSockets";
+import { useUserStore } from "../zustand/user-store";
 
 type MenuLineProps = {
   text: string;
@@ -92,8 +93,8 @@ function DropdownMenu({
   showInfo,
   setOptionsOpen,
 }: DropdownMenuProps) {
-  const currentUser = useContext(AuthContext);
   const setModalState = useModalStore((state) => state.setModalState);
+  const currentUser = useUserStore((state) => state.user);
 
   return (
     <div
@@ -170,7 +171,6 @@ function Chat() {
   const setInputBuffer = useChatsStore((state) => state.setInputBuffer);
   const currentChatId = useChatsStore((state) => state.currentChatId);
   const chats = useChatsStore((state) => state.chats);
-  const clearUnread = useChatsStore((state) => state.clearUnread);
 
   // fetch messages for current chat
   const chat = chats.find((c) => c.id === currentChatId) as GroupType | DMType;
@@ -207,7 +207,6 @@ function Chat() {
 
   // Close info panel every time chat changes
   useEffect(() => {
-    clearUnread();
     closeInfo();
     setOpen(null);
     setOptionsOpen(false);
