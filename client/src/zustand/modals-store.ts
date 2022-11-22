@@ -13,16 +13,19 @@ export type ModalState =
   | "account-settings";
 
 interface State {
-  modalState: ModalState,
-  setModalState: (newModalState: ModalState) => void
+  modalState: ModalState;
+  setModalState: (newModalState: ModalState) => void;
 }
 
 export const useModalStore = create<State>()(
-  devtools((set) => ({
-    modalState: null,
-    setModalState: (newModalState) =>
-      set((state) => ({ ...state, modalState: newModalState })),
-  }), {
-    name: 'modal-store'
-  })
+  devtools(
+    (set) => ({
+      modalState: null,
+      setModalState: (newModalState) =>
+        set((state) => ({ ...state, modalState: newModalState })),
+    }),
+    {
+      name: "modal-store",
+    }
+  )
 );

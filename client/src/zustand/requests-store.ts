@@ -2,12 +2,12 @@ import create from "zustand";
 import avatar from "../assets/avatar.jpeg";
 import { devtools } from "zustand/middleware";
 import { RequestType, UserType } from "../data";
-import { requestSchemaType } from "../zod/api-requests";
-import { user1 } from "./chats-store";
+import { requestSchema } from "../../../server/src/zod/api-requests";
+import { z } from "zod";
 
 interface State {
   requests: RequestType[];
-  addRequest: (data: requestSchemaType) => void;
+  addRequest: (data: z.infer<typeof requestSchema>) => void;
   removeRequest: (requestId: string) => void;
 }
 
