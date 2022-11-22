@@ -1,13 +1,18 @@
 import { WebSocket, WebSocketServer } from "ws";
-import { z } from "zod";
-import {
-  baseDataSchema,
-  addMessageSchema,
-  deleteMessageSchema,
-  deleteMessageSchemaType,
-} from "./zod/schemas";
+import { baseDataSchema } from "./zod/schemas";
 import { PrismaClient } from "@prisma/client";
-import { messageSchemaType } from "./zod/api-messages";
+
+// Websocket message handlers
+import { handleAddMessage } from "./websockets-handlers/add-message";
+import { handleDeleteMessage } from "./websockets-handlers/delete-message";
+import { handleSendRequest } from "./websockets-handlers/send-request";
+import { handleRemoveRequest } from "./websockets-handlers/remove-request";
+import { handleCreateGroup } from "./websockets-handlers/create-group";
+import { handleDeleteGroup } from "./websockets-handlers/delete-group";
+import { handleUpdateGroup } from "./websockets-handlers/update-group";
+import { handleRegenInvite } from "./websockets-handlers/regen-invite";
+import { json } from "stream/consumers";
+import { handleUpdateUserSettings } from "./websockets-handlers/update-user-settings";
 
 // Prisma setup
 const prisma = new PrismaClient();
@@ -18,132 +23,63 @@ const wss = new WebSocketServer({ port: 8081 });
 const wsUserMap = new Map<WebSocket, string>();
 
 wss.on("connection", function connection(ws) {
+  // for testing purposes only:
   const userId = "19c5cede-a9ae-4479-81c2-95dc9c0a0e37";
   wsUserMap.set(ws, userId);
+
+  console.log(`User ID ${userId} connected`);
 
   ws.on("message", async function message(rawData) {
     try {
       const jsonData = JSON.parse(rawData.toString());
       const data = baseDataSchema.parse(jsonData);
 
-      console.log("Got parsed data", data);
+      console.log("Got parsed data", jsonData);
 
       // Process chat messages
-      if (data.type === "add-message") {
-        const messageData = addMessageSchema.parse(jsonData);
-
-        console.log("Got message data from client:", messageData);
-
-        // add message to Database
-        const addedMessage = await prisma.message.create({
-          data: {
-            content: messageData.content,
-            author: {
-              connect: { id: messageData.userId },
-            },
-            chat: {
-              connect: { id: messageData.chatId },
-            },
-          },
-          select: {
-            id: true,
-            chatId: true,
-            author: true,
-            content: true,
-            createdAt: true,
-            chat: {
-              select: {
-                id: true,
-                members: {
-                  select: {
-                    id: true,
-                  },
-                },
-              },
-            },
-          },
-        });
-
-        console.log("added to DB:", addedMessage);
-
-        const messageToSend: messageSchemaType = {
-          content: addedMessage.content,
-          id: addedMessage.id,
-          chatId: addedMessage.chat.id,
-          createdAt: addedMessage.createdAt,
-          author: {
-            id: addedMessage.author.id,
-            handle: addedMessage.author.handle,
-            name: addedMessage.author.name,
-          },
-        };
-
-        const dataToSend: z.infer<typeof baseDataSchema> = {
-          ...messageToSend,
-          type: "add-message",
-        };
-
-        // Boardcast to all clients connected to this chat
-        const clientUserIds = addedMessage.chat.members.map((m) => m.id);
-        wsUserMap.forEach((userId, ws) => {
-          if (!clientUserIds.includes(userId)) return;
-          if (ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify(dataToSend));
-          }
-        });
+      if (data.dataType === "add-message") {
+        handleAddMessage(wsUserMap, prisma, jsonData);
       }
 
-      if (data.type === "delete-message") {
-        const messageData = deleteMessageSchema.parse(jsonData);
-
-        console.log("Got delete message data from client:", messageData);
-
-        // delete message from Database
-        const deletedMessage = await prisma.message.delete({
-          where: {
-            id: messageData.messageId,
-          },
-          select: {
-            id: true,
-            chatId: true,
-            author: true,
-            chat: {
-              select: {
-                id: true,
-                members: {
-                  select: {
-                    id: true,
-                  },
-                },
-              },
-            },
-          },
-        });
-
-        console.log("deleted from DB:", deletedMessage);
-
-        const dataToSend: deleteMessageSchemaType = {
-          type: "delete-message",
-          authorId: deletedMessage.author.id,
-          messageId: deletedMessage.id,
-          chatId: deletedMessage.chat.id,
-        };
-
-        // Boardcast to all clients connected to this chat
-        const clientUserIds = deletedMessage.chat.members.map((m) => m.id);
-        wsUserMap.forEach((userId, ws) => {
-          if (!clientUserIds.includes(userId)) return;
-          if (ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify(dataToSend));
-          }
-        });
+      if (data.dataType === "delete-message") {
+        handleDeleteMessage(wsUserMap, prisma, jsonData);
       }
-    } catch (error) {}
+
+      if (data.dataType === "send-request") {
+        handleSendRequest(ws, wsUserMap, prisma, jsonData);
+      }
+
+      if (data.dataType === "remove-request") {
+        handleRemoveRequest(ws, wsUserMap, prisma, jsonData);
+      }
+
+      if (data.dataType === "create-group") {
+        handleCreateGroup(ws, wsUserMap, prisma, jsonData);
+      }
+
+      if (data.dataType === "update-group") {
+        handleUpdateGroup(ws, wsUserMap, prisma, jsonData);
+      }
+
+      if (data.dataType === "delete-group") {
+        handleDeleteGroup(ws, wsUserMap, prisma, jsonData);
+      }
+
+      if (data.dataType === "regen-invite") {
+        handleRegenInvite(ws, wsUserMap, prisma, jsonData);
+      }
+
+      if (data.dataType === "update-user-settings") {
+        handleUpdateUserSettings(ws, wsUserMap, prisma, jsonData);
+      }
+    } catch (error) {
+      console.error(error);
+    }
   });
 
   ws.on("close", function () {
+    const userId = wsUserMap.get(ws);
+    console.log(`User ID ${userId} has disconnected`);
     wsUserMap.delete(ws);
   });
-
-  // ws.send("something");
 });
