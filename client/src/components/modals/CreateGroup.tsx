@@ -1,20 +1,26 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import creeper from "../../assets/creeper.webp";
 
 // Font Awesome
-import { faAngleRight, faArrowLeft, faXmark } from "@fortawesome/free-solid-svg-icons";
+import {
+  faAngleRight,
+  faArrowLeft,
+  faXmark,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 // Zustand
 import { useModalStore } from "../../zustand/modals-store";
 import { useChatsStore } from "../../zustand/chats-store";
+import { emitter } from "../../App";
+import useWebSockets from "../../hooks/useWebSockets";
 
 type Props = {};
 
 function CreateGroup({}: Props) {
   const setModalState = useModalStore((state) => state.setModalState);
-
-  const createNewGroup = useChatsStore(state => state.createNewGroup);
+  const { sendCreateGroup } = useWebSockets();
+  const createNewGroup = useChatsStore((state) => state.createNewGroup);
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -29,14 +35,24 @@ function CreateGroup({}: Props) {
   }
 
   function handleClick() {
-    if (name === '' || description === '') return;
-    createNewGroup(name, description, isPublic);
-    setModalState(null);
+    if (name === "" || description === "") return;
+    sendCreateGroup(name, description, isPublic);
   }
+
+  useEffect(() => {
+    const ackGroupHandler = () => {
+      setModalState(null);
+    };
+
+    emitter.on("groupCreated", ackGroupHandler);
+
+    return () => {
+      emitter.off("groupCreated", ackGroupHandler);
+    };
+  }, []);
 
   return (
     <div className="px-16 pt-6 pb-12 bg-slate-300 bg-opacity-100 z-20 rounded-xl flex flex-col">
-
       {/* Modal header */}
       <div className="flex flex-row w-full items-center">
         <FontAwesomeIcon
@@ -50,10 +66,8 @@ function CreateGroup({}: Props) {
 
       {/* Modal content */}
       <div className="flex mt-10 gap-10">
-
         {/* Upload picture */}
         <div className="flex flex-col w-60">
-
           {/* Group picture */}
           <img className="rounded-full w-full" src={creeper} alt="" />
 
@@ -124,7 +138,11 @@ function CreateGroup({}: Props) {
         <div
           className={`
             bg-slate-400 w-14 h-14 rounded-full flex-shrink-0 ml-auto flex items-center justify-center
-            ${name === '' || description === '' ? 'bg-opacity-50' : 'cursor-pointer hover:bg-opacity-50'}
+            ${
+              name === "" || description === ""
+                ? "bg-opacity-50"
+                : "cursor-pointer hover:bg-opacity-50"
+            }
           `}
           onClick={handleClick}
         >

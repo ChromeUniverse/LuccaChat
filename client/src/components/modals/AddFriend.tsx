@@ -1,38 +1,58 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from "react";
 
 // Font Awesome
-import { faAngleRight, faArrowLeft, faCheck, faXmark } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faAngleRight,
+  faArrowLeft,
+  faCheck,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 // Zustand
-import { useModalStore } from '../../zustand/modals-store';
+import { useModalStore } from "../../zustand/modals-store";
+import useWebSockets from "../../hooks/useWebSockets";
+import { emitter } from "../../App";
 
 function AddFriend() {
+  const setModalState = useModalStore((state) => state.setModalState);
+  const { sendRequest } = useWebSockets();
 
-  const setModalState = useModalStore(state => state.setModalState);
-
-
-  const [input, setInput] = useState('');
-  const [prompt, setPrompt] = useState('');
+  const [input, setInput] = useState("");
+  const [prompt, setPrompt] = useState("");
   const [sent, setSent] = useState(false);
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {    
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setInput(e.currentTarget.value);
   }
 
   function handleClick() {
-
     if (sent) return;
-    if (input === '') return setPrompt("That can't be empty, dummy");
-    else {
+    if (input === "") return setPrompt("That can't be empty, dummy");
+    // console.log(input);
+    else sendRequest(input.toString());
+  }
+
+  useEffect(() => {
+    const ackHandler = () => {
       setPrompt("Request sent! Now you wait. :-)");
       setSent(true);
       setTimeout(() => {
         setModalState(null);
       }, 2000);
-    }
-    
-  }
+    };
+
+    const errorHandler = (errorMessage: string) => {
+      setPrompt(errorMessage);
+    };
+
+    emitter.on("ackRequest", ackHandler);
+    emitter.on("errorRequest", errorHandler);
+
+    return () => {
+      emitter.off("ackRequest", ackHandler);
+      emitter.off("errorRequest", errorHandler);
+    };
+  }, []);
 
   return (
     <div className="pl-12 pr-24 pt-8 pb-20 bg-slate-300 bg-opacity-100 z-20 rounded-xl flex items-start">
@@ -63,7 +83,13 @@ function AddFriend() {
 
         <div className="w-full pl-4 mt-2 bg-slate-200 rounded-full flex items-center">
           {/* "@"" handle prefix */}
-          <p className={`-mt-[2px] mr-1.5 text-slate-400 ${sent ? "text-slate-400" : ""}`}>@</p>
+          <p
+            className={`-mt-[2px] mr-1.5 text-slate-400 ${
+              sent ? "text-slate-400" : ""
+            }`}
+          >
+            @
+          </p>
 
           {/* handle input */}
           <input
@@ -101,4 +127,4 @@ function AddFriend() {
   );
 }
 
-export default AddFriend
+export default AddFriend;

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import avatar from "../../assets/avatar.jpeg";
 
 // Font Awesome
@@ -12,10 +12,15 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 // Zustand
 import { useModalStore } from "../../zustand/modals-store";
-import { useChatsStore, user } from "../../zustand/chats-store";
+import { useChatsStore } from "../../zustand/chats-store";
 import { faClipboard } from "@fortawesome/free-regular-svg-icons";
 import { GroupType } from "../../data";
 import { useDebouncedCallback } from "use-debounce";
+import { useUserStore } from "../../zustand/user-store";
+import { emitter } from "../../App";
+import useWebSockets from "../../hooks/useWebSockets";
+import { z } from "zod";
+import { errorUserInfoSchema } from "../../../../server/src/zod/schemas";
 
 interface FormLineProps {
   label: string;
@@ -34,11 +39,10 @@ function FormLine({
   setter = () => {},
   handle = false,
   password = false,
-  errorPrompt = '',
+  errorPrompt = "",
 }: FormLineProps) {
   return (
     <div className="mb-4">
-      
       {/* Label text */}
       <p className="pb-2">{label}</p>
 
@@ -52,6 +56,7 @@ function FormLine({
         <div className="py-3 px-5 bg-slate-200 rounded-xl flex gap-1">
           {handle && <span className="text-slate-400">@</span>}
           <input
+            autoComplete="name"
             className="w-full bg-transparent outline-none"
             placeholder={placeholder}
             type="text"
@@ -62,7 +67,9 @@ function FormLine({
       )}
 
       {/* Error text prompt */}
-      {errorPrompt !== '' && <p className="mt-2 text-sm italic text-slate-500">{errorPrompt}</p>}
+      {errorPrompt !== "" && (
+        <p className="mt-2 text-sm italic text-slate-500">{errorPrompt}</p>
+      )}
     </div>
   );
 }
@@ -70,6 +77,8 @@ function FormLine({
 type Props = {};
 
 function AccountSettings({}: Props) {
+  const user = useUserStore((state) => state.user);
+
   // form data
   const [name, setName] = useState(user.name);
   const [handle, setHandle] = useState(user.handle);
@@ -82,58 +91,46 @@ function AccountSettings({}: Props) {
   const [updatePrompt, setUpdatePrompt] = useState("");
 
   const setModalState = useModalStore((state) => state.setModalState);
-  
-  const debouncedClearUpdatePrompt = useDebouncedCallback(() => setUpdatePrompt(""), 1000);
+
+  const { sendUpdateUserSettings } = useWebSockets();
+
+  const debouncedClearUpdatePrompt = useDebouncedCallback(
+    () => setUpdatePrompt(""),
+    1000
+  );
 
   // form validation
   function handleUpdateClick() {
-
-    let error = false;
-
-    // Check for empty fields
-    if (name === '') {
-      error = true
-      setNameError("This can't be empty");
-    } else {
-      setNameError("");
-    }
-    
-    if (handle === '') {
-      error = true
-      setHandleError("This can't be empty");
-    } else {
-      setHandleError('');
-    }
-
-    if (email === '') {
-      error = true
-      setEmailError("This can't be empty");
-    } else {
-      setEmailError('');
-    }
-
-    // Check for available handle
-    if (handle === 'lucca') {
-      error = true
-      setHandleError("This handle is already taken. Please try again");
-    } else {
-      setHandleError('');
-    }
-
-    // Check for valid email
-    // NOTE: TODO!!!!
-    if (email === '') {
-      error = true
-      setEmailError("Please enter a valid email");
-    } else {
-      setEmailError('');
-    }
-
-    // Dismiss if there are any errors
-    if (error) return;
-    setUpdatePrompt('Updated!');
-    debouncedClearUpdatePrompt();
+    sendUpdateUserSettings(name, handle, email);
   }
+
+  useEffect(() => {
+    const userUpdatedHandler = () => {
+      setNameError("");
+      setHandleError("");
+      setEmailError("");
+      setUpdatePrompt("Updated!");
+      debouncedClearUpdatePrompt();
+    };
+
+    const userUpdateErrorHandler = (
+      errorData: z.infer<typeof errorUserInfoSchema>
+    ) => {
+      console.log("error fired!!!", errorData);
+
+      setNameError(errorData.nameError);
+      setHandleError(errorData.handleError);
+      setEmailError(errorData.emailError);
+    };
+
+    emitter.on("userUpdated", userUpdatedHandler);
+    emitter.on("userUpdateError", userUpdateErrorHandler);
+
+    return () => {
+      emitter.off("userUpdated", userUpdatedHandler);
+      emitter.off("userUpdateError", userUpdateErrorHandler);
+    };
+  }, []);
 
   return (
     <div className="px-16 pt-6 pb-12 bg-slate-300 bg-opacity-100 z-30 rounded-xl flex flex-col">
@@ -149,6 +146,11 @@ function AccountSettings({}: Props) {
           onClick={() => setModalState(null)}
         />
       </div>
+
+      <p className="text-sm mt-3 mb-3">
+        <span className="font-semibold">Note:</span> updated names/handles only
+        appear to other users once they refresh the app.
+      </p>
 
       {/* Modal content */}
       <div className="flex mt-4 gap-10">
@@ -183,7 +185,7 @@ function AccountSettings({}: Props) {
           <FormLine
             label="Email"
             placeholder="chatty@chatface.com"
-            value={email}            
+            value={email}
             setter={setEmail}
             errorPrompt={emailError}
           />
@@ -193,7 +195,6 @@ function AccountSettings({}: Props) {
 
       {/* Modal footer */}
       <div className="flex w-full pt-6 items-center gap-6">
-
         {/* Update Prompt */}
         <p className="ml-auto">{updatePrompt}</p>
 

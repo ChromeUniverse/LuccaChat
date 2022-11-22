@@ -1,32 +1,51 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from "react";
 
 // Font Awesome
-import { faAngleRight, faArrowLeft, faCheck, faXmark } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faAngleRight,
+  faArrowLeft,
+  faCheck,
+  faXmark,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 // Zustand
-import { useModalStore } from '../../zustand/modals-store';
-import { useChatsStore } from '../../zustand/chats-store';
-import { GroupType } from '../../data';
-import { useInfoStore } from '../../zustand/info-panel-store';
+import { useModalStore } from "../../zustand/modals-store";
+import { useChatsStore } from "../../zustand/chats-store";
+import { GroupType } from "../../data";
+import { useInfoStore } from "../../zustand/info-panel-store";
+import useWebSockets from "../../hooks/useWebSockets";
+import { emitter } from "../../App";
 
 function DeleteGroup() {
-
-  const setModalState = useModalStore(state => state.setModalState);
-  const closeInfo = useInfoStore(state => state.closeInfo)
-  const removeGroup = useChatsStore(state => state.removeGroup);
-  const getCurrentChat = useChatsStore(state => state.getCurrentChat);
+  const setModalState = useModalStore((state) => state.setModalState);
+  const getCurrentChat = useChatsStore((state) => state.getCurrentChat);
+  const { sendDeleteGroup } = useWebSockets();
 
   const chat = getCurrentChat() as GroupType;
 
-  if (chat.type !== 'group') throw new Error("'Leave Group' modals should only be visible from 'Group' chats");  
+  if (chat.type !== "group")
+    throw new Error(
+      "'Leave Group' modals should only be visible from 'Group' chats"
+    );
 
   function handleClick() {
-    console.log('YOLO'); 
-    setModalState(null);
-    removeGroup(chat.id);
-    closeInfo();
+    sendDeleteGroup(chat.id);
   }
+
+  useEffect(() => {
+    const groupDeletedHandler = (groupId: string) => {
+      // ignore event if the event's group ID doesn't match this group's ID
+      if (groupId !== chat.id) return;
+      setModalState(null);
+    };
+
+    emitter.on("groupDeleted", groupDeletedHandler);
+
+    return () => {
+      emitter.off("groupDeleted", groupDeletedHandler);
+    };
+  });
 
   return (
     <div className="w-[600px] px-12 pt-8 pb-10 bg-slate-300 bg-opacity-100 z-20 rounded-xl flex flex-col items-start">
@@ -43,7 +62,10 @@ function DeleteGroup() {
 
       {/* Modal description */}
       <p className="font-normal pt-10 pb-4">
-        Are you sure you want to delete this group? All messages will be lost and the entire group will be disbanded. <span className='italic'>Oh, the horror!!</span> <br /> <br /> This action is <span className='font-bold'>irreversible</span>!
+        Are you sure you want to delete this group? All messages will be lost
+        and the entire group will be disbanded.{" "}
+        <span className="italic">Oh, the horror!!</span> <br /> <br /> This
+        action is <span className="font-bold">irreversible</span>!
       </p>
 
       {/* Modal footer */}

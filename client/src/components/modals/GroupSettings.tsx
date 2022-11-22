@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import creeper from "../../assets/creeper.webp";
 
 // Font Awesome
@@ -17,6 +17,8 @@ import { nanoid } from "nanoid";
 import { faClipboard } from "@fortawesome/free-regular-svg-icons";
 import { GroupType } from "../../data";
 import { useDebouncedCallback } from "use-debounce";
+import { emitter } from "../../App";
+import useWebSockets from "../../hooks/useWebSockets";
 
 type Props = {};
 
@@ -24,10 +26,7 @@ function GroupSettings({}: Props) {
   const setModalState = useModalStore((state) => state.setModalState);
   const getCurrentChat = useChatsStore((state) => state.getCurrentChat);
   const group = getCurrentChat() as GroupType;
-  const resetInviteCode = useChatsStore((state) => state.resetInviteCode);
-  const updateGroupSettings = useChatsStore(
-    (state) => state.updateGroupSettings
-  );
+  const { sendUpdateGroup, sendRegenInvite } = useWebSockets();
 
   const [name, setName] = useState(group.name);
   const [description, setDescription] = useState(group.description);
@@ -50,25 +49,44 @@ function GroupSettings({}: Props) {
   );
 
   function handleInviteClick(type: "copy" | "reset") {
-    let timeout;
-
-    clearTimeout(timeout);
-
     if (type === "copy") {
       setPrompt("Copied!");
+      debouncedClearPrompt();
     } else {
-      resetInviteCode(group.id);
-      setPrompt("Invite reset!");
+      sendRegenInvite(group.id);
     }
-
-    debouncedClearPrompt();
   }
 
+  // button click handler
   function handleUpdate() {
-    updateGroupSettings(group.id, name, description, isPublic);
-    setUpdatePrompt("Updated!");
-    debouncedClearUpdatePrompt();
+    sendUpdateGroup(group.id, name, description, isPublic);
   }
+
+  useEffect(() => {
+    const groupUpdateHandler = (groupId: string) => {
+      // ignore event if the event's group ID doesn't match this group's ID
+      if (groupId !== group.id) return;
+      console.log("update group fired!!!");
+      setUpdatePrompt("Updated!");
+      debouncedClearUpdatePrompt();
+    };
+
+    const inviteUpdateHandler = (groupId: string) => {
+      // ignore event if the event's group ID doesn't match this group's ID
+      if (groupId !== group.id) return;
+      console.log("update invite code fired!!!");
+      setPrompt("Invite reset!");
+      debouncedClearPrompt();
+    };
+
+    emitter.on("groupUpdated", groupUpdateHandler);
+    emitter.on("inviteSet", inviteUpdateHandler);
+
+    return () => {
+      emitter.off("groupUpdated", groupUpdateHandler);
+      emitter.off("inviteSet", inviteUpdateHandler);
+    };
+  }, []);
 
   return (
     <div className="px-16 pt-6 pb-12 bg-slate-300 bg-opacity-100 z-20 rounded-xl flex flex-col">
