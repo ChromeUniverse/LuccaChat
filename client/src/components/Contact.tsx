@@ -2,17 +2,24 @@ import React from "react";
 import avatar from "../assets/avatar.jpeg";
 import { UserType } from "../data";
 import { useChatsStore } from "../zustand/chats-store";
+import { useInfoStore } from "../zustand/info-panel-store";
 
 interface Props {
   user: UserType;
   chatId?: string;
-  unread?: number;
   highlight?: boolean;
+  openInfoOnClick?: boolean;
 }
 
-function Contact({ user, chatId, unread = 0, highlight = false }: Props) {
+function Contact({
+  user,
+  chatId,
+  highlight = false,
+  openInfoOnClick = false,
+}: Props) {
   const currentChatId = useChatsStore((state) => state.currentChatId);
   const setChatId = useChatsStore((state) => state.setCurrentChatId);
+  const showUserInfo = useInfoStore((state) => state.showUserInfo);
 
   return (
     <div
@@ -23,6 +30,7 @@ function Contact({ user, chatId, unread = 0, highlight = false }: Props) {
       `}
       onClick={() => {
         if (chatId) setChatId(chatId);
+        if (openInfoOnClick) showUserInfo(user);
       }}
     >
       {/* Avatar */}
@@ -33,13 +41,6 @@ function Contact({ user, chatId, unread = 0, highlight = false }: Props) {
         <h3 className="font-normal text-xl">{user.name}</h3>
         <p className="font-bold text-sm">@{user.handle}</p>
       </div>
-
-      {/* Unread message count */}
-      {/* {chatId && unread !== 0 && (
-        <div className="min-w-[1.5rem] px-2 h-6 bg-slate-400 rounded-full ml-auto flex justify-center items-center text-slate-100 font-bold text-sm">
-          {unread}
-        </div>
-      )} */}
     </div>
   );
 }
