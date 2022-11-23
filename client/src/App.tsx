@@ -29,7 +29,10 @@ import { useUserStore } from "./zustand/user-store";
 import fetchCurrentUser from "./api/fetchCurrentUser";
 
 import { z } from "zod";
-import { errorUserInfoSchema } from "../../server/src/zod/schemas";
+import {
+  errorUserInfoSchema,
+  removeMemberSchema,
+} from "../../server/src/zod/schemas";
 
 type Events = {
   addChatMessage: any;
@@ -42,6 +45,7 @@ type Events = {
   inviteSet: string;
   userUpdated: string;
   userUpdateError: z.infer<typeof errorUserInfoSchema>;
+  memberKicked: z.infer<typeof removeMemberSchema>;
 };
 
 export const emitter = mitt<Events>();
