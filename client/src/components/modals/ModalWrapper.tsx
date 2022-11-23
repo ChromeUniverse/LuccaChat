@@ -6,6 +6,7 @@ import AddFriend from "./AddFriend";
 import CreateGroup from "./CreateGroup";
 import DeleteGroup from "./DeleteGroup";
 import GroupSettings from "./GroupSettings";
+import KickMember from "./KickMember";
 import LeaveGroup from "./LeaveGroup";
 
 type Props = {};
@@ -44,6 +45,7 @@ function ModalWrapper({}: Props) {
           {modalState === "leave-group" && <LeaveGroup />}
           {modalState === "delete-group" && <DeleteGroup />}
           {modalState === "account-settings" && <AccountSettings />}
+          {modalState === "kick-member" && <KickMember />}
         </div>
       )}
     </>
