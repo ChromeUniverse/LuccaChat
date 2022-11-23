@@ -10,7 +10,8 @@ function Footer() {
   return (
     <footer className="flex flex-col gap-3 pt-12">
       <p className="dark:text-white text-center text-xl">
-        Built by <span className="font-bold text-sky-600">Lucca Rodrigues</span> 🚀
+        Built by <span className="font-bold text-sky-600">Lucca Rodrigues</span>{" "}
+        🚀
       </p>
       <div className="flex flex-row justify-center gap-3">
         <a
@@ -36,8 +37,7 @@ function Footer() {
   );
 }
 
-function Home({ }: Props) {
-  
+function Home({}: Props) {
   const randomMessages = [
     `(Possibly) the world's worst chat app!`,
     `Does anyone actually use this thing...?`,
@@ -49,8 +49,8 @@ function Home({ }: Props) {
     `Don't expect VoIP to be added any time soon...!`,
     `Buy me a coffee!! But I don't have a Ko-Fi link... 😓`,
     `Ya like jazz? 🎷🐛`,
-    `"Robert'); DROP TABLE Students;--" approves!`
-  ]
+    `Approved by "Robert'); DROP TABLE Students;--"!`,
+  ];
 
   function getRandomMessage() {
     const randomIndex = Math.floor(Math.random() * randomMessages.length);
@@ -65,7 +65,10 @@ function Home({ }: Props) {
         <h1 className="text-5xl">
           Welcome to <span className="font-bold text-sky-600">LuccaChat</span>
         </h1>
-        <FontAwesomeIcon className="text-5xl text-sky-600" icon={faCommentDots} />
+        <FontAwesomeIcon
+          className="text-5xl text-sky-600"
+          icon={faCommentDots}
+        />
       </header>
 
       <p className="text-sm mt-4">{getRandomMessage()}</p>
@@ -74,14 +77,17 @@ function Home({ }: Props) {
       <ul className="list-disc space-y-3 mt-24 mb-12 marker:text-sky-600">
         <li className="text-xl">Select chats from the sidebar</li>
         <li className="text-xl">
-          Don't have any chats yet? Click <span className="font-bold text-sky-600">Add Chat</span>!
+          Don't have any chats yet? Click{" "}
+          <span className="font-bold text-sky-600">Add Chat</span>!
         </li>
         <li className="text-xl">
           We support <span className="font-bold text-sky-600">DMs</span>,{" "}
           <span className="font-bold text-sky-600">private</span> and{" "}
           <span className="font-bold text-sky-600">public groups</span>!
         </li>
-        <li className="text-xl">We pinky swear to not spy on your data, lmao 🤣</li>
+        <li className="text-xl">
+          We pinky swear to not spy on your data, lmao 🤣
+        </li>
       </ul>
 
       {/* Home view footer */}
