@@ -9,6 +9,11 @@ interface State {
   requests: RequestType[];
   addRequest: (data: z.infer<typeof requestSchema>) => void;
   removeRequest: (requestId: string) => void;
+  updateUserInfoInRequests: (
+    userId: string,
+    name: string,
+    handle: string
+  ) => void;
 }
 
 export const useRequestsStore = create<State>()(
@@ -35,6 +40,17 @@ export const useRequestsStore = create<State>()(
         set((state) => ({
           ...state,
           requests: get().requests.filter((r) => r.id !== requestId),
+        }));
+      },
+
+      updateUserInfoInRequests: (userId, name, handle) => {
+        set((state) => ({
+          ...state,
+          requests: get().requests.map((r) =>
+            r.sender.id === userId
+              ? { ...r, sender: { ...r.sender, name: name, handle: handle } }
+              : r
+          ),
         }));
       },
     }),

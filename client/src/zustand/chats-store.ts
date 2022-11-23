@@ -42,6 +42,7 @@ interface State {
   updateLatest: (chatId: string, newLatest: Date) => void;
   chatHasUser: (chatId: string, userId: string) => boolean;
   updateUserInfoInChats: (userId: string, handle: string, name: string) => void;
+  removeMemberFromGroup: (groupId: string, memberId: string) => void;
 }
 
 export const useChatsStore = create<State>()(
@@ -285,7 +286,7 @@ export const useChatsStore = create<State>()(
         return false;
       },
 
-      updateUserInfoInChats: (userId: string, name: string, handle: string) => {
+      updateUserInfoInChats: (userId, name, handle) => {
         const chatHasUser = get().chatHasUser;
         const newChats = get().chats.map((chat) => {
           const hasUser = chatHasUser(chat.id, userId);
@@ -337,6 +338,20 @@ export const useChatsStore = create<State>()(
           }
         });
         set((state) => ({ chats: newChats }));
+      },
+
+      removeMemberFromGroup: (groupId, memberId) => {
+        set((state) => ({
+          ...state,
+          chats: get().chats.map((chat) =>
+            chat.type === "group" && chat.id === groupId
+              ? {
+                  ...chat,
+                  members: chat.members.filter((m) => m.id !== memberId),
+                }
+              : chat
+          ),
+        }));
       },
     }),
     {

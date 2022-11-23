@@ -10,7 +10,8 @@ export type ModalState =
   | "group-settings"
   | "leave-group"
   | "delete-group"
-  | "account-settings";
+  | "account-settings"
+  | "kick-member";
 
 interface State {
   modalState: ModalState;
