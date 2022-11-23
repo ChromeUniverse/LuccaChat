@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 
 // Dummy pictures
 import avatar from "../assets/avatar.jpeg";
@@ -21,16 +21,24 @@ import { useInfoStore } from "../zustand/info-panel-store";
 import { GroupType, UserType } from "../data";
 import { useChatsStore } from "../zustand/chats-store";
 import { useUserStore } from "../zustand/user-store";
+import { removeMemberSchema } from "../../../server/src/zod/schemas";
+import { emitter } from "../App";
+import { z } from "zod";
+import { useModalStore } from "../zustand/modals-store";
 
-function FooterMenuLine({
-  text,
-  icon,
-}: {
+interface FooterMenuLineProps {
   text: string;
   icon: IconDefinition;
-}) {
+}
+
+function FooterMenuLine({ text, icon }: FooterMenuLineProps) {
+  const setModalState = useModalStore((state) => state.setModalState);
+
   return (
-    <div className="pl-3 py-2 flex justify-start items-center gap-3 hover:bg-slate-200 rounded-md cursor-pointer">
+    <div
+      className="pl-3 py-2 flex justify-start items-center gap-3 hover:bg-slate-200 rounded-md cursor-pointer"
+      onClick={() => setModalState("kick-member")}
+    >
       <FontAwesomeIcon className="w-6 text-red-500" icon={icon} size="lg" />
       <p className="font-semibold text-red-500 text-lg">{text}</p>
     </div>
@@ -65,6 +73,7 @@ function InfoPanel({ type, user, group }: Props) {
       `Info panel is of type "group" but received no group object!`
     );
 
+  // Closes the info panel
   const closeInfo = useInfoStore((state) => state.closeInfo);
 
   // get current chat data
@@ -74,10 +83,26 @@ function InfoPanel({ type, user, group }: Props) {
   // Prevents user from accessing info panel about themselves
   const currentUser = useUserStore((state) => state.user);
 
-  if (userData !== undefined && userData.id === currentUser.id)
+  if (userData !== undefined && userData.id === currentUser.id) {
     throw new Error(
       "Currently auth'd user shouldn't be able to view info about themselves!!"
     );
+  }
+
+  useEffect(() => {
+    const memberKickedHandler = (data: z.infer<typeof removeMemberSchema>) => {
+      // ignore if event's group ID doesn't match current Group ID
+      if (data.groupId !== currentChat.id) return;
+      console.log("member kicked handler fired!");
+      if (type === "user" && userData.id === data.memberId) closeInfo();
+    };
+
+    emitter.on("memberKicked", memberKickedHandler);
+
+    return () => {
+      emitter.off("memberKicked", memberKickedHandler);
+    };
+  }, []);
 
   return (
     <div className="w-[360px] h-screen flex-shrink-0 bg-slate-100 flex flex-col items-center">
@@ -127,13 +152,21 @@ function InfoPanel({ type, user, group }: Props) {
               </p>
 
               {/* Group creator */}
-              <Contact user={groupData.createdBy} highlight />
+              <Contact
+                user={groupData.createdBy}
+                highlight
+                openInfoOnClick={groupData.createdBy.id !== currentUser.id}
+              />
 
               {/* Other group members */}
               {groupData.members
                 .filter((m) => m.id !== groupData.createdBy.id)
                 .map((m) => (
-                  <Contact key={m.id} user={m} />
+                  <Contact
+                    key={m.id}
+                    user={m}
+                    openInfoOnClick={m.id !== currentUser.id}
+                  />
                 ))}
             </div>
           </>
@@ -172,7 +205,6 @@ function InfoPanel({ type, user, group }: Props) {
                     text={`Kick ${userData.name}`}
                     icon={faXmark}
                   />
-                  <FooterMenuLine text={`Ban ${userData.name}`} icon={faBan} />
                 </div>
               )}
           </>
