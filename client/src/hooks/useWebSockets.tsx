@@ -148,6 +148,16 @@ function sendUpdateUserSettings(name: string, handle: string, email: string) {
   console.log("sent update user settings");
 }
 
+function sendKickMember(groupId: string, memberId: string) {
+  const data: z.infer<typeof removeMemberSchema> = {
+    dataType: "remove-member",
+    groupId: groupId,
+    memberId: memberId,
+  };
+  ws.send(JSON.stringify(data));
+  console.log("sent kick member");
+}
+
 export default function useWebSockets() {
   useEffect(() => {
     consumers += 1;
@@ -271,13 +281,24 @@ export default function useWebSockets() {
         removeRequest(requestId);
       }
 
+      // Update/Set User information
       if (data.dataType === "set-user-info") {
         const { userId, name, handle, email } =
           setUserInfoSchema.parse(jsonData);
 
+        // Only update info if current user ID and data user ID match
         const updateInfo = useUserStore.getState().updateInfo;
-        updateInfo(name, handle, email);
+        const user = useUserStore.getState().user;
+        const updateUserInfoInRequests =
+          useRequestsStore.getState().updateUserInfoInRequests;
+        // Only update info if current user ID and data user ID match
+        if (userId === user.id) updateInfo(name, handle, email);
+        // Else, update user info in requests
+        else {
+          updateUserInfoInRequests(userId, name, handle);
+        }
 
+        // Update this user's info in chat messages and members
         const updateUserInfoInChats =
           useChatsStore.getState().updateUserInfoInChats;
         updateUserInfoInChats(userId, name, handle);
@@ -288,6 +309,16 @@ export default function useWebSockets() {
       if (data.dataType === "error-user-info") {
         const errorData = errorUserInfoSchema.parse(jsonData);
         emitter.emit("userUpdateError", errorData);
+      }
+
+      // remove member from group
+      if (data.dataType === "remove-member") {
+        const removedMemberData = removeMemberSchema.parse(jsonData);
+        // Update chats store
+        const removeMember = useChatsStore.getState().removeMemberFromGroup;
+        removeMember(removedMemberData.groupId, removedMemberData.memberId);
+        // event emitter
+        emitter.emit("memberKicked", removedMemberData);
       }
     });
     return () => {
@@ -308,5 +339,6 @@ export default function useWebSockets() {
     sendDeleteGroup,
     sendRegenInvite,
     sendUpdateUserSettings,
+    sendKickMember,
   };
 }
