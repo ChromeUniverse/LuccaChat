@@ -28,7 +28,6 @@ interface FormLineProps {
   value?: any;
   setter?: (...args: any) => any;
   handle?: boolean;
-  password?: boolean;
   errorPrompt?: string;
 }
 
@@ -38,33 +37,27 @@ function FormLine({
   value = null,
   setter = () => {},
   handle = false,
-  password = false,
   errorPrompt = "",
 }: FormLineProps) {
   return (
     <div className="mb-4">
       {/* Label text */}
-      <p className="pb-2">{label}</p>
+      {/* <p className="pb-2">{label}</p> */}
+      <label className="pb-2" htmlFor={label}>
+        {label}
+      </label>
 
-      {password ? (
-        // Change password button
-        <button className="text-slate-100 w-full font-semibold rounded-full bg-slate-400 text-lg py-2 hover:bg-opacity-50">
-          Change password
-        </button>
-      ) : (
-        // Input container
-        <div className="py-3 px-5 bg-slate-200 rounded-xl flex gap-1">
-          {handle && <span className="text-slate-400">@</span>}
-          <input
-            autoComplete="name"
-            className="w-full bg-transparent outline-none"
-            placeholder={placeholder}
-            type="text"
-            value={value}
-            onInput={(e) => setter(e.currentTarget.value)}
-          />
-        </div>
-      )}
+      {/* Input container */}
+      <div className="py-3 px-5 bg-slate-200 rounded-xl flex gap-1">
+        {handle && <span className="text-slate-400">@</span>}
+        <input
+          className="w-full bg-transparent outline-none"
+          placeholder={placeholder}
+          type="text"
+          value={value}
+          onInput={(e) => setter(e.currentTarget.value)}
+        />
+      </div>
 
       {/* Error text prompt */}
       {errorPrompt !== "" && (
@@ -166,7 +159,7 @@ function AccountSettings({}: Props) {
         </div>
 
         {/* Form */}
-        <div className="flex flex-col w-80">
+        <form action="">
           <FormLine
             label="Display name"
             placeholder="Chatty McChatface"
@@ -189,8 +182,7 @@ function AccountSettings({}: Props) {
             setter={setEmail}
             errorPrompt={emailError}
           />
-          {/* <FormLine label="Password" password /> */}
-        </div>
+        </form>
       </div>
 
       {/* Modal footer */}
