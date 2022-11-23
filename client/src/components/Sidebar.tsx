@@ -220,7 +220,7 @@ function Sidebar({}: Props) {
             </div>
 
             {/* Chats container */}
-            <div className="flex flex-col mt-3 gap-1 overflow-y-auto">
+            <div className="flex flex-col mt-3 mb-3 gap-1 overflow-y-auto">
               {sortedChats.map((chat) => {
                 return chat.type === "dm" ? (
                   <Contact
@@ -266,7 +266,7 @@ function Sidebar({}: Props) {
         {/* Requests tab */}
         {tab === "requests" && (
           // Requests container
-          <div className="mt-4 px-2 w-full flex flex-col gap-4">
+          <div className="mt-4 mb-3 px-2 w-full flex flex-col gap-4">
             {sortedRequests.map((r) => (
               <Request key={r.id} request={r} />
             ))}
