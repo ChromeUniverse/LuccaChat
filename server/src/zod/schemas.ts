@@ -12,12 +12,11 @@ export const baseDataSchema = z.object({
     "set-user-info",
     // dms
     "create-dm",
-    // ...
     // groups
     "create-group",
     "update-group",
     "delete-group",
-    "kick-user",
+    "remove-member",
     // invite codes,
     "regen-invite",
     "set-invite",
@@ -137,7 +136,7 @@ export const setInviteSchema = baseDataSchema.extend({
 // CLIENT -> SERVER
 // SERVER -> CLIENT
 export const removeMemberSchema = baseDataSchema.extend({
-  userId: z.string().uuid(),
+  memberId: z.string().uuid(),
   groupId: z.string().uuid(),
 });
 
