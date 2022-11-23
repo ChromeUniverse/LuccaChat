@@ -13,6 +13,7 @@ import { handleUpdateGroup } from "./websockets-handlers/update-group";
 import { handleRegenInvite } from "./websockets-handlers/regen-invite";
 import { json } from "stream/consumers";
 import { handleUpdateUserSettings } from "./websockets-handlers/update-user-settings";
+import { handleRemoveMember } from "./websockets-handlers/remove-member";
 
 // Prisma setup
 const prisma = new PrismaClient();
@@ -71,6 +72,10 @@ wss.on("connection", function connection(ws) {
 
       if (data.dataType === "update-user-settings") {
         handleUpdateUserSettings(ws, wsUserMap, prisma, jsonData);
+      }
+
+      if (data.dataType === "remove-member") {
+        handleRemoveMember(ws, wsUserMap, prisma, jsonData);
       }
     } catch (error) {
       console.error(error);
