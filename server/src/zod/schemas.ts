@@ -35,7 +35,6 @@ export const currentUserSchema = z.object({
   id: z.string().uuid(),
   handle: z.string(),
   name: z.string(),
-  email: z.string().email(),
 });
 
 export const userSchema = z.object({
@@ -44,12 +43,17 @@ export const userSchema = z.object({
   name: z.string(),
 });
 
+export const userPassportSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  handle: z.string(),
+});
+
 // Update user settings
 // CLIENT -> SERVER
 export const updateUserSettingsSchema = baseDataSchema.extend({
   name: z.string(),
   handle: z.string(),
-  email: z.string(),
 });
 
 // Update user info error
@@ -57,7 +61,6 @@ export const updateUserSettingsSchema = baseDataSchema.extend({
 export const errorUserInfoSchema = baseDataSchema.extend({
   nameError: z.string(),
   handleError: z.string(),
-  emailError: z.string(),
 });
 
 // Set updated user info
@@ -66,7 +69,6 @@ export const setUserInfoSchema = baseDataSchema.extend({
   userId: z.string().uuid(),
   name: z.string(),
   handle: z.string(),
-  email: z.string().email(),
 });
 
 //---------------------------------------------------------------
