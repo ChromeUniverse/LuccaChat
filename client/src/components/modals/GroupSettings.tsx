@@ -17,7 +17,7 @@ import { nanoid } from "nanoid";
 import { faClipboard } from "@fortawesome/free-regular-svg-icons";
 import { GroupType } from "../../data";
 import { useDebouncedCallback } from "use-debounce";
-import { emitter } from "../../App";
+import { emitter } from "../../routes/App";
 import useWebSockets from "../../hooks/useWebSockets";
 
 type Props = {};

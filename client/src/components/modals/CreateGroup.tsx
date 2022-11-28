@@ -12,7 +12,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 // Zustand
 import { useModalStore } from "../../zustand/modals-store";
 import { useChatsStore } from "../../zustand/chats-store";
-import { emitter } from "../../App";
+import { emitter } from "../../routes/App";
 import useWebSockets from "../../hooks/useWebSockets";
 
 type Props = {};

@@ -31,7 +31,7 @@ import {
 import { useInfoStore } from "../zustand/info-panel-store";
 import { useChatsStore } from "../zustand/chats-store";
 import { ChatType, DMType, GroupType, UserType } from "../data";
-import { emitter } from "../App";
+import { emitter } from "../routes/App";
 import { useModalStore } from "../zustand/modals-store";
 import { faClipboard } from "@fortawesome/free-regular-svg-icons";
 import useWebSockets from "../hooks/useWebSockets";

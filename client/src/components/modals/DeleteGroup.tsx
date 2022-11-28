@@ -15,7 +15,7 @@ import { useChatsStore } from "../../zustand/chats-store";
 import { GroupType } from "../../data";
 import { useInfoStore } from "../../zustand/info-panel-store";
 import useWebSockets from "../../hooks/useWebSockets";
-import { emitter } from "../../App";
+import { emitter } from "../../routes/App";
 
 function DeleteGroup() {
   const setModalState = useModalStore((state) => state.setModalState);

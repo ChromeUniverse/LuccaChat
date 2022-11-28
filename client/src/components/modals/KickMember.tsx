@@ -14,7 +14,7 @@ import { useModalStore } from "../../zustand/modals-store";
 import { useChatsStore } from "../../zustand/chats-store";
 import { GroupType, UserType } from "../../data";
 import { useInfoStore } from "../../zustand/info-panel-store";
-import { emitter } from "../../App";
+import { emitter } from "../../routes/App";
 import { removeMemberSchema } from "../../../../server/src/zod/schemas";
 import { z } from "zod";
 import useWebSockets from "../../hooks/useWebSockets";

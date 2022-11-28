@@ -22,7 +22,7 @@ import { GroupType, UserType } from "../data";
 import { useChatsStore } from "../zustand/chats-store";
 import { useUserStore } from "../zustand/user-store";
 import { removeMemberSchema } from "../../../server/src/zod/schemas";
-import { emitter } from "../App";
+import { emitter } from "../routes/App";
 import { z } from "zod";
 import { useModalStore } from "../zustand/modals-store";
 

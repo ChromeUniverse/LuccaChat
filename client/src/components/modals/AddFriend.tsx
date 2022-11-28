@@ -11,7 +11,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 // Zustand
 import { useModalStore } from "../../zustand/modals-store";
 import useWebSockets from "../../hooks/useWebSockets";
-import { emitter } from "../../App";
+import { emitter } from "../../routes/App";
 
 function AddFriend() {
   const setModalState = useModalStore((state) => state.setModalState);
