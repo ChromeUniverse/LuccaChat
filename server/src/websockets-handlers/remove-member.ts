@@ -5,12 +5,11 @@ import { deleteGroupSchema, removeMemberSchema } from "../zod/schemas";
 
 export async function handleRemoveMember(
   ws: WebSocket,
-  wsUserMap: Map<WebSocket, string>,
+  userSocketMap: Map<string, WebSocket>,
   prisma: PrismaClient,
   jsonData: any
 ) {
   // Extract updated group data from WS message
-  const userId = wsUserMap.get(ws) as string;
   const removedMemberData = removeMemberSchema.parse(jsonData);
 
   // fetch group from Database
@@ -27,40 +26,40 @@ export async function handleRemoveMember(
 
   if (!groupToUpdate) {
     throw new Error(
-      `VIOLATION: User ID ${userId} tried removing user from non-existent group`
+      `VIOLATION: User ID ${ws.userId} tried removing user from non-existent group`
     );
   }
 
   // Check if this chat is a group or not
   if (groupToUpdate.type !== "GROUP") {
     throw new Error(
-      `VIOLATION: User ID ${userId} tried removing someone from DM ID ${groupToUpdate.id}`
+      `VIOLATION: User ID ${ws.userId} tried removing someone from DM ID ${groupToUpdate.id}`
     );
   }
 
   // Check if user to delete is actually in this group
   const memberIds = groupToUpdate.members.map((m) => m.id);
-  if (!memberIds.includes(userId)) {
+  if (!memberIds.includes(ws.userId)) {
     throw new Error(
-      `VIOLATION: User ID ${userId} tried removing non-existent user from Group ID ${groupToUpdate.id}`
+      `VIOLATION: User ID ${ws.userId} tried removing non-existent user from Group ID ${groupToUpdate.id}`
     );
   }
 
   // Check if this user isn't the group's creator
   // AND is trying to delete someone other than themselves
   if (
-    groupToUpdate.creatorId !== userId &&
-    removedMemberData.memberId !== userId
+    groupToUpdate.creatorId !== ws.userId &&
+    removedMemberData.memberId !== ws.userId
   ) {
     throw new Error(
-      `VIOLATION: Non-creator user ID ${userId} tried removing user from Group ID ${groupToUpdate.id}`
+      `VIOLATION: Non-creator user ID ${ws.userId} tried removing user from Group ID ${groupToUpdate.id}`
     );
   }
 
   // Check if this user if trying to remove the group's creator
   if (groupToUpdate.creatorId === removedMemberData.memberId) {
     throw new Error(
-      `VIOLATION: ser ID ${userId} tried kicking Group ID ${groupToUpdate.id}'s creator`
+      `VIOLATION: ser ID ${ws.userId} tried kicking Group ID ${groupToUpdate.id}'s creator`
     );
   }
 
@@ -74,12 +73,41 @@ export async function handleRemoveMember(
   });
 
   // Boardcast to all clients connected to this chat
-  const clientUserIds = groupToUpdate.members.map((m) => m.id);
-  wsUserMap.forEach((clientUserId, ws) => {
-    if (!clientUserIds.includes(clientUserId)) return;
+  // const clientUserIds = groupToUpdate.members.map((m) => m.id);
+  // wsUserMap.forEach((clientUserId, ws) => {
+  //   if (!clientUserIds.includes(clientUserId)) return;
+  //   if (ws.readyState === WebSocket.OPEN) {
+  //     // Send "remove group" message to target member
+  //     if (clientUserId === removedMemberData.memberId) {
+  //       const dataToSend: z.infer<typeof deleteGroupSchema> = {
+  //         dataType: "delete-group",
+  //         groupId: updatedGroup.id,
+  //       };
+  //       ws.send(JSON.stringify(dataToSend));
+  //     }
+  //     // Send "remove Member" message to other members
+  //     else {
+  //       const dataToSend: z.infer<typeof removeMemberSchema> = {
+  //         dataType: "remove-member",
+  //         groupId: updatedGroup.id,
+  //         memberId: removedMemberData.memberId,
+  //       };
+  //       ws.send(JSON.stringify(dataToSend));
+  //     }
+  //   }
+  // });
+
+  // Boardcast to all clients connected to this chat
+  const onlineClients: WebSocket[] = [];
+  groupToUpdate.members.forEach((m) => {
+    const client = userSocketMap.get(m.id);
+    if (client) onlineClients.push(client);
+  });
+
+  onlineClients.forEach((ws) => {
     if (ws.readyState === WebSocket.OPEN) {
       // Send "remove group" message to target member
-      if (clientUserId === removedMemberData.memberId) {
+      if (ws.userId === removedMemberData.memberId) {
         const dataToSend: z.infer<typeof deleteGroupSchema> = {
           dataType: "delete-group",
           groupId: updatedGroup.id,
@@ -97,5 +125,5 @@ export async function handleRemoveMember(
       }
     }
   });
-  console.log("Got to end of WS handler");
+  console.log("Got to end of Remove Member WS handler");
 }

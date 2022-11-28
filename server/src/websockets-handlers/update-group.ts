@@ -5,12 +5,11 @@ import { baseDataSchema, updateGroupSchema } from "../zod/schemas";
 
 export async function handleUpdateGroup(
   ws: WebSocket,
-  wsUserMap: Map<WebSocket, string>,
+  userSocketMap: Map<string, WebSocket>,
   prisma: PrismaClient,
   jsonData: any
 ) {
   // Extract updated group data from WS message
-  const userId = wsUserMap.get(ws);
   const updatedGroupData = updateGroupSchema.parse(jsonData);
 
   // Check if user who invoked this is the group's creator
@@ -19,9 +18,9 @@ export async function handleUpdateGroup(
     select: { creatorId: true },
   });
 
-  if (groupToUpdate?.creatorId !== userId) {
+  if (groupToUpdate?.creatorId !== ws.userId) {
     throw new Error(
-      `VIOLATION: User ${userId} tried updating Group ${updatedGroupData.groupId}`
+      `VIOLATION: User ${ws.userId} tried updating Group ${updatedGroupData.groupId}`
     );
   }
 
@@ -57,9 +56,21 @@ export async function handleUpdateGroup(
   };
 
   // Boardcast to all clients connected to this chat
-  const clientUserIds = updatedGroup.members.map((m) => m.id);
-  wsUserMap.forEach((userId, ws) => {
-    if (!clientUserIds.includes(userId)) return;
+  // const clientUserIds = updatedGroup.members.map((m) => m.id);
+  // wsUserMap.forEach((userId, ws) => {
+  //   if (!clientUserIds.includes(userId)) return;
+  //   if (ws.readyState === WebSocket.OPEN) {
+  //     ws.send(JSON.stringify(dataToSend));
+  //   }
+  // });
+
+  const onlineClients: WebSocket[] = [];
+  updatedGroup.members.forEach((m) => {
+    const client = userSocketMap.get(m.id);
+    if (client) onlineClients.push(client);
+  });
+
+  onlineClients.forEach((ws) => {
     if (ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify(dataToSend));
     }

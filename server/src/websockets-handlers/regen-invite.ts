@@ -6,12 +6,11 @@ import { nanoid } from "nanoid";
 
 export async function handleRegenInvite(
   ws: WebSocket,
-  wsUserMap: Map<WebSocket, string>,
+  userSocketMap: Map<string, WebSocket>,
   prisma: PrismaClient,
   jsonData: any
 ) {
   // Extract updated group data from WS message
-  const userId = wsUserMap.get(ws);
   const { groupId } = regenInviteSchema.parse(jsonData);
 
   // Check if user who invoked this is the group's creator
@@ -23,19 +22,19 @@ export async function handleRegenInvite(
   // sanity checks
   if (!groupToUpdate) {
     throw new Error(
-      `VIOLATION: User ${userId} tried regen-ing invite for non-existent group`
+      `VIOLATION: User ${ws.userId} tried regen-ing invite for non-existent group`
     );
   }
 
   if (groupToUpdate.type === "DM" || !groupToUpdate.inviteCode) {
     throw new Error(
-      `VIOLATION: User ${userId} tried updating non-existent invite on DM ${groupId}`
+      `VIOLATION: User ${ws.userId} tried updating non-existent invite on DM ${groupId}`
     );
   }
 
-  if (groupToUpdate?.creatorId !== userId) {
+  if (groupToUpdate?.creatorId !== ws.userId) {
     throw new Error(
-      `VIOLATION: Non-creator user ${userId} tried updating Group ${groupId}`
+      `VIOLATION: Non-creator user ${ws.userId} tried updating Group ${groupId}`
     );
   }
 
@@ -64,9 +63,13 @@ export async function handleRegenInvite(
   };
 
   // Boardcast to all clients connected to this chat
-  const clientUserIds = updatedGroup.members.map((m) => m.id);
-  wsUserMap.forEach((userId, ws) => {
-    if (!clientUserIds.includes(userId)) return;
+  const onlineClients: WebSocket[] = [];
+  updatedGroup.members.forEach((m) => {
+    const client = userSocketMap.get(m.id);
+    if (client) onlineClients.push(client);
+  });
+
+  onlineClients.forEach((ws) => {
     if (ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify(inviteDataToSend));
     }

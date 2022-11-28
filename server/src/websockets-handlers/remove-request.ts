@@ -6,7 +6,7 @@ import { chatSchema } from "../zod/api-chats";
 
 export async function handleRemoveRequest(
   ws: WebSocket,
-  wsUserMap: Map<WebSocket, string>,
+  userSocketMap: Map<string, WebSocket>,
   prisma: PrismaClient,
   jsonData: any
 ) {
@@ -94,11 +94,24 @@ export async function handleRemoveRequest(
   };
 
   // send new DM data to all members
-  const clientUserIds = newDM.members.map((m) => m.id);
-  wsUserMap.forEach((userId, ws) => {
-    if (!clientUserIds.includes(userId)) return;
+  // const clientUserIds = newDM.members.map((m) => m.id);
+  // wsUserMap.forEach((userId, ws) => {
+  //   if (!clientUserIds.includes(userId)) return;
+  //   if (ws.readyState === WebSocket.OPEN) {
+  //     ws.send(JSON.stringify(dmDataToSend));
+  //   }
+  // });
+
+  // Boardcast to all clients connected to this chat
+  const onlineClients: WebSocket[] = [];
+  newDM.members.forEach((m) => {
+    const client = userSocketMap.get(m.id);
+    if (client) onlineClients.push(client);
+  });
+
+  onlineClients.forEach((ws) => {
     if (ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify(dmDataToSend));
+      ws.send(JSON.stringify(dataToSend));
     }
   });
 }

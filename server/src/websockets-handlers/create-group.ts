@@ -1,18 +1,17 @@
-import { WebSocket } from "ws";
+import { WebSocket, WebSocketServer } from "ws";
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
 import { baseDataSchema, createGroupSchema } from "../zod/schemas";
 import { nanoid } from "nanoid";
 import { chatSchema, ChatSchemaType } from "../zod/api-chats";
+import { userInfo } from "os";
 
 export async function handleCreateGroup(
   ws: WebSocket,
-  wsUserMap: Map<WebSocket, string>,
   prisma: PrismaClient,
   jsonData: any
 ) {
   // Extract new group data from WS message
-  const creatorId = wsUserMap.get(ws);
   const { name, description, isPublic } = createGroupSchema.parse(jsonData);
 
   // Create new group in DB
@@ -24,10 +23,10 @@ export async function handleCreateGroup(
       isPublic: isPublic,
       description: description,
       creator: {
-        connect: { id: creatorId },
+        connect: { id: ws.userId },
       },
       members: {
-        connect: [{ id: creatorId }],
+        connect: [{ id: ws.userId }],
       },
     },
     select: {

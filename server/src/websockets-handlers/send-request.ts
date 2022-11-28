@@ -8,17 +8,13 @@ import {
   sendRequestSchema,
 } from "../zod/schemas";
 import { requestSchema } from "../zod/api-requests";
-import { getWSfromUserId } from "../misc";
 
 export async function handleSendRequest(
   ws: WebSocket,
-  wsUserMap: Map<WebSocket, string>,
+  userSocketMap: Map<string, WebSocket>,
   prisma: PrismaClient,
   jsonData: any
 ) {
-  // for testing purposes only:
-  const userId = "19c5cede-a9ae-4479-81c2-95dc9c0a0e37";
-
   const { handle } = sendRequestSchema.parse(jsonData);
   const targetUser = await prisma.user.findUnique({
     where: { handle: handle },
@@ -35,7 +31,7 @@ export async function handleSendRequest(
   }
 
   // Avoid user from sending friend requests to themselves
-  if (targetUser.id === wsUserMap.get(ws)) {
+  if (targetUser.id === ws.userId) {
     console.log("User trying to send friend self-request");
     const dataToSend: z.infer<typeof errorRequestSchema> = {
       dataType: "error-request",
@@ -49,7 +45,7 @@ export async function handleSendRequest(
     where: {
       AND: [
         { receiver: { handle: { equals: handle } } },
-        { sender: { id: { equals: wsUserMap.get(ws) } } },
+        { sender: { id: { equals: ws.userId } } },
       ],
     },
   });
@@ -67,7 +63,7 @@ export async function handleSendRequest(
   // Passed all sanity checks, create new friend request in DB
   const createdRequest = await prisma.request.create({
     data: {
-      sender: { connect: { id: userId } },
+      sender: { connect: { id: ws.userId } },
       receiver: { connect: { id: targetUser.id } },
     },
     select: {
@@ -107,7 +103,7 @@ export async function handleSendRequest(
   };
 
   // send newly created request to receiver
-  const receiverClient = getWSfromUserId(wsUserMap, targetUser.id);
+  const receiverClient = userSocketMap.get(targetUser.id);
   if (receiverClient) receiverClient.send(JSON.stringify(dataToSend));
 
   // send ACK message to sender

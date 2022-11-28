@@ -10,34 +10,24 @@ import { getWSfromUserId } from "../misc";
 
 export async function handleUpdateUserSettings(
   ws: WebSocket,
-  wsUserMap: Map<WebSocket, string>,
+  userSocketMap: Map<string, WebSocket>,
   prisma: PrismaClient,
   jsonData: any
 ) {
   // Extract updated group data from WS message
-  const userId = wsUserMap.get(ws);
   const updatedUserData = updateUserSettingsSchema.parse(jsonData);
-  const { name, handle, email } = updatedUserData;
+  const { name, handle } = updatedUserData;
 
   let nameError = "";
   let handleError = "";
-  let emailError = "";
 
   // basic sanity checks
   if (name === "") nameError = "This can't be blank";
   if (handle === "") handleError = "This can't be blank";
-  if (email === "") emailError = "This can't be blank";
-
-  // Validate email
-  const parsedEmail = z.string().email().safeParse(email);
-  if (!parsedEmail.success) {
-    console.log("email parsing failed");
-    emailError = "Invalid email";
-  }
 
   // Check if user is actually in DB (checking by ID)
   const userToUpdate = await prisma.user.findUnique({
-    where: { id: userId },
+    where: { id: ws.userId },
   });
 
   if (!userToUpdate) throw new Error("VIOLATION: User to update, not found");
@@ -52,14 +42,13 @@ export async function handleUpdateUserSettings(
   }
 
   // Check if there are any errors, send 'em down the wire
-  if (nameError !== "" || handleError !== "" || emailError !== "") {
+  if (nameError !== "" || handleError !== "") {
     console.log("Sending errors...");
 
     const dataToSend: z.infer<typeof errorUserInfoSchema> = {
       dataType: "error-user-info",
       nameError: nameError,
       handleError: handleError,
-      emailError: emailError,
     };
     return ws.send(JSON.stringify(dataToSend));
   }
@@ -67,18 +56,16 @@ export async function handleUpdateUserSettings(
   // Update user's info in DB, pull related chats
   const updatedUser = await prisma.user.update({
     where: {
-      id: userId,
+      id: ws.userId,
     },
     data: {
       name: name,
       handle: handle,
-      email: email,
     },
     select: {
       id: true,
       name: true,
       handle: true,
-      email: true,
       chats: {
         select: {
           id: true,
@@ -94,7 +81,6 @@ export async function handleUpdateUserSettings(
     userId: updatedUser.id,
     name: updatedUser.name,
     handle: updatedUser.handle,
-    email: email,
   };
 
   // Send it back to the user
@@ -102,22 +88,24 @@ export async function handleUpdateUserSettings(
 
   // Building set of all clients connected to this user's chats:
   const clientUserIdSet = new Set<string>();
-  const clientSet = new Set<WebSocket>();
+  const onlineClients: WebSocket[] = [];
 
   // first, get all users that share a DM/group with this user
   updatedUser.chats.forEach((chat) => {
     chat.members.forEach((member) => clientUserIdSet.add(member.id));
   });
 
-  // then, loop over the Websocket/User map and find any matching clients
-  wsUserMap.forEach((userId, ws) => {
-    if (clientUserIdSet.has(userId)) clientSet.add(ws);
+  // then, loop over the client/userID set,
+  // fetch the websocket and put it in the list of online clients
+  clientUserIdSet.forEach((userId) => {
+    const client = userSocketMap.get(userId);
+    if (client) onlineClients.push(client);
   });
 
   // Boardcast to all clients connected to this user's chats
-  clientSet.forEach((client) => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify(dataToSend));
+  onlineClients.forEach((ws) => {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify(dataToSend));
     }
   });
 }

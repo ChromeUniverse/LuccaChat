@@ -6,12 +6,11 @@ import { chatSchema, ChatSchemaType } from "../zod/api-chats";
 
 export async function handleDeleteGroup(
   ws: WebSocket,
-  wsUserMap: Map<WebSocket, string>,
+  userSocketMap: Map<string, WebSocket>,
   prisma: PrismaClient,
   jsonData: any
 ) {
   // Extract data from WS message
-  const userId = wsUserMap.get(ws);
   const deleteGroupData = deleteGroupSchema.parse(jsonData);
 
   // Check if user who invoked this is the group's creator
@@ -20,9 +19,9 @@ export async function handleDeleteGroup(
     select: { creatorId: true },
   });
 
-  if (groupToDelete?.creatorId !== userId) {
+  if (groupToDelete?.creatorId !== ws.userId) {
     throw new Error(
-      `VIOLATION: User ${userId} tried deleting Group ${deleteGroupData.groupId}`
+      `VIOLATION: User ${ws.userId} tried deleting Group ${deleteGroupData.groupId}`
     );
   }
 
@@ -49,9 +48,13 @@ export async function handleDeleteGroup(
   };
 
   // Boardcast to all clients connected to this chat
-  const clientUserIds = updatedGroup.members.map((m) => m.id);
-  wsUserMap.forEach((userId, ws) => {
-    if (!clientUserIds.includes(userId)) return;
+  const onlineClients: WebSocket[] = [];
+  updatedGroup.members.forEach((m) => {
+    const client = userSocketMap.get(m.id);
+    if (client) onlineClients.push(client);
+  });
+
+  onlineClients.forEach((ws) => {
     if (ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify(dataToSend));
     }
