@@ -1,0 +1,18 @@
+{
+  // "ts-node": {
+  //   "compilerOptions": {
+  //     "typeRoots": ["./types"]
+  //   }
+  // },
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "CommonJS",
+    "outDir": "./dist",
+    "rootDir": "./",
+    "esModuleInterop": true,
+    "moduleResolution": "Node",
+    "strict": true,
+    "skipLibCheck": true,
+    "typeRoots": ["./types"]
+  }
+}
