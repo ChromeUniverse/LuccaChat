@@ -8,7 +8,7 @@ import {
 export default async function fetchRequests() {
   // GET request
   const url = `${import.meta.env.VITE_BACKEND_URL}/api/requests`;
-  const { data, status } = await axios.get(url);
+  const { data, status } = await axios.get(url, { withCredentials: true });
 
   // Validate primitive chat data
   const requestArrayPrimitive = requestArraySchemaPrimitive.parse(data);

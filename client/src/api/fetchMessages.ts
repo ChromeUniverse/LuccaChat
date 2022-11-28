@@ -11,7 +11,7 @@ export default async function fetchMessages(chatId: string) {
     import.meta.env.VITE_BACKEND_URL
   }/api/chats/${chatId}/messages`;
 
-  const { data, status } = await axios.get(url);
+  const { data, status } = await axios.get(url, { withCredentials: true });
 
   // Validate primitive chat data
   const messagesPrimitive = messagesSchemaPrimitive.parse(data);
