@@ -2,37 +2,37 @@
 import { createContext, useEffect } from "react";
 
 // Components
-import Chat from "./components/Chat";
-import Sidebar from "./components/Sidebar";
-import InfoPanel from "./components/InfoPanel";
+import Chat from "../components/Chat";
+import Sidebar from "../components/Sidebar";
+import InfoPanel from "../components/InfoPanel";
 
 // Zustand
-import { useInfoStore } from "./zustand/info-panel-store";
-import { GroupType, UserType } from "./data";
+import { useInfoStore } from "../zustand/info-panel-store";
+import { GroupType, UserType } from "../data";
 
 // Auth'd user
-import { useChatsStore } from "./zustand/chats-store";
-import ModalWrapper from "./components/modals/ModalWrapper";
-import Home from "./components/Home";
+import { useChatsStore } from "../zustand/chats-store";
+import ModalWrapper from "../components/modals/ModalWrapper";
+import Home from "../components/Home";
 import PublicGroupBrowser, {
   useBrowserStore,
-} from "./components/PublicGroupBrowser";
-import useWebSockets from "./hooks/useWebSockets";
+} from "../components/PublicGroupBrowser";
+import useWebSockets from "../hooks/useWebSockets";
 
 // Event Emitter
 import mitt from "mitt";
-import fetchChats from "./api/fetchChats";
-import fetchMessages from "./api/fetchMessages";
-import fetchRequests from "./api/fetchRequests";
-import { useRequestsStore } from "./zustand/requests-store";
-import { useUserStore } from "./zustand/user-store";
-import fetchCurrentUser from "./api/fetchCurrentUser";
+import fetchChats from "../api/fetchChats";
+import fetchMessages from "../api/fetchMessages";
+import fetchRequests from "../api/fetchRequests";
+import { useRequestsStore } from "../zustand/requests-store";
+import { useUserStore } from "../zustand/user-store";
+import fetchCurrentUser from "../api/fetchCurrentUser";
 
 import { z } from "zod";
 import {
   errorUserInfoSchema,
   removeMemberSchema,
-} from "../../server/src/zod/schemas";
+} from "../../../server/src/zod/schemas";
 
 type Events = {
   addChatMessage: any;
@@ -68,12 +68,7 @@ function App() {
 
       // Initialize user profile
       const currentUser = await fetchCurrentUser();
-      userInfoInit(
-        currentUser.id,
-        currentUser.name,
-        currentUser.handle,
-        currentUser.email
-      );
+      userInfoInit(currentUser.id, currentUser.name, currentUser.handle);
 
       // Fetching chats
       const chats = await fetchChats();
