@@ -144,8 +144,10 @@ function Message({
 
       {/* Messsage content */}
       <div className="flex flex-col">
-        <h3 className="font-semibold text-xl text-blue-900">{sender.name}</h3>
-        <p className="">{content}</p>
+        <h3 className="font-semibold text-xl text-blue-900 select-text">
+          {sender.name}
+        </h3>
+        <p className="select-text">{content}</p>
       </div>
 
       {/* Options menu button */}
