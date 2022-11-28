@@ -12,12 +12,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 // Zustand
 import { useModalStore } from "../../zustand/modals-store";
-import { useChatsStore } from "../../zustand/chats-store";
-import { faClipboard } from "@fortawesome/free-regular-svg-icons";
-import { GroupType } from "../../data";
 import { useDebouncedCallback } from "use-debounce";
 import { useUserStore } from "../../zustand/user-store";
-import { emitter } from "../../App";
+import { emitter } from "../../routes/App";
 import useWebSockets from "../../hooks/useWebSockets";
 import { z } from "zod";
 import { errorUserInfoSchema } from "../../../../server/src/zod/schemas";
@@ -75,12 +72,10 @@ function AccountSettings({}: Props) {
   // form data
   const [name, setName] = useState(user.name);
   const [handle, setHandle] = useState(user.handle);
-  const [email, setEmail] = useState(user.email);
 
   // prompts
   const [nameError, setNameError] = useState("");
   const [handleError, setHandleError] = useState("");
-  const [emailError, setEmailError] = useState("");
   const [updatePrompt, setUpdatePrompt] = useState("");
 
   const setModalState = useModalStore((state) => state.setModalState);
@@ -94,14 +89,13 @@ function AccountSettings({}: Props) {
 
   // form validation
   function handleUpdateClick() {
-    sendUpdateUserSettings(name, handle, email);
+    sendUpdateUserSettings(name, handle);
   }
 
   useEffect(() => {
     const userUpdatedHandler = () => {
       setNameError("");
       setHandleError("");
-      setEmailError("");
       setUpdatePrompt("Updated!");
       debouncedClearUpdatePrompt();
     };
@@ -113,7 +107,6 @@ function AccountSettings({}: Props) {
 
       setNameError(errorData.nameError);
       setHandleError(errorData.handleError);
-      setEmailError(errorData.emailError);
     };
 
     emitter.on("userUpdated", userUpdatedHandler);
@@ -140,26 +133,41 @@ function AccountSettings({}: Props) {
         />
       </div>
 
-      <p className="text-sm mt-3 mb-3">
+      {/* <p className="text-sm mt-3 mb-3">
         <span className="font-semibold">Note:</span> updated names/handles only
         appear to other users once they refresh the app.
-      </p>
+      </p> */}
 
       {/* Modal content */}
       <div className="flex mt-4 gap-10">
         {/* Upload picture */}
-        <div className="flex flex-col w-60 justify-center">
-          {/* Group picture */}
-          <img className="rounded-full w-full" src={avatar} alt="" />
 
-          {/* Upload button */}
-          <button className="bg-slate-400 hover:bg-opacity-50 mt-6 w-full rounded-full font-semibold text-slate-100 text-lg py-2 outline-none">
-            Upload photo
-          </button>
+        <div className="w-60">
+          <form action="flex flex-col justify-center">
+            {/* Group picture */}
+            <img className="rounded-full w-full" src={avatar} alt="" />
+
+            {/* Upload button */}
+            <div className="">
+              <label
+                className="bg-slate-400 hover:bg-opacity-50 mt-6 w-full rounded-full font-semibold text-slate-100 text-lg py-2 outline-none cursor-pointer block text-center"
+                htmlFor="pfp_upload"
+              >
+                Choose photo
+              </label>
+              <input
+                id="pfp_upload"
+                name="pfp_upload"
+                className="hidden"
+                type="file"
+                accept="image/png, image/jpeg"
+              />
+            </div>
+          </form>
         </div>
 
         {/* Form */}
-        <form action="">
+        <form action="" className="mt-8">
           <FormLine
             label="Display name"
             placeholder="Chatty McChatface"
@@ -174,13 +182,6 @@ function AccountSettings({}: Props) {
             setter={setHandle}
             errorPrompt={handleError}
             handle
-          />
-          <FormLine
-            label="Email"
-            placeholder="chatty@chatface.com"
-            value={email}
-            setter={setEmail}
-            errorPrompt={emailError}
           />
         </form>
       </div>

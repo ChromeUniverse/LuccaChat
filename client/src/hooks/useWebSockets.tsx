@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { MessageType } from "../data";
 import { useChatsStore } from "../zustand/chats-store";
 import { z } from "zod";
-import { emitter } from "../App";
+import { emitter } from "../routes/App";
 import {
   baseDataSchema,
   addMessageSchema,
@@ -137,12 +137,11 @@ function sendRegenInvite(groupId: string) {
   console.log("sent invite regen");
 }
 
-function sendUpdateUserSettings(name: string, handle: string, email: string) {
+function sendUpdateUserSettings(name: string, handle: string) {
   const data: z.infer<typeof updateUserSettingsSchema> = {
     dataType: "update-user-settings",
     name: name,
     handle: handle,
-    email: email,
   };
   ws.send(JSON.stringify(data));
   console.log("sent update user settings");
@@ -283,8 +282,7 @@ export default function useWebSockets() {
 
       // Update/Set User information
       if (data.dataType === "set-user-info") {
-        const { userId, name, handle, email } =
-          setUserInfoSchema.parse(jsonData);
+        const { userId, name, handle } = setUserInfoSchema.parse(jsonData);
 
         // Only update info if current user ID and data user ID match
         const updateInfo = useUserStore.getState().updateInfo;
@@ -292,7 +290,7 @@ export default function useWebSockets() {
         const updateUserInfoInRequests =
           useRequestsStore.getState().updateUserInfoInRequests;
         // Only update info if current user ID and data user ID match
-        if (userId === user.id) updateInfo(name, handle, email);
+        if (userId === user.id) updateInfo(name, handle);
         // Else, update user info in requests
         else {
           updateUserInfoInRequests(userId, name, handle);
