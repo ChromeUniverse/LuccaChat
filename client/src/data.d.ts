@@ -5,9 +5,7 @@ export interface UserType {
   handle: string;
 }
 
-export interface CurrentUserType extends UserType {
-  email: string;
-}
+export interface CurrentUserType extends UserType {}
 
 export interface MessageType {
   id: string;
