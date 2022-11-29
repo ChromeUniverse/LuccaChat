@@ -40,15 +40,16 @@ function FormLine({
     <div className="mb-4">
       {/* Label text */}
       {/* <p className="pb-2">{label}</p> */}
-      <label className="pb-2" htmlFor={label}>
+      <label className="font-semibold text-md" htmlFor={label}>
         {label}
       </label>
 
       {/* Input container */}
-      <div className="py-3 px-5 bg-slate-200 rounded-xl flex gap-1">
-        {handle && <span className="text-slate-400">@</span>}
+      <div className="mt-1 py-3 px-5 bg-slate-200 rounded-xl flex w-72 items-center">
+        {handle && <span className="text-slate-400 mr-1">@</span>}
         <input
-          className="w-full bg-transparent outline-none"
+          id={label}
+          className="w-full bg-transparent outline-none text-lg"
           placeholder={placeholder}
           type="text"
           value={value}
@@ -68,12 +69,15 @@ type Props = {};
 
 function AccountSettings({}: Props) {
   const user = useUserStore((state) => state.user);
+  const defaultSrc = `http://localhost:8080/avatars/${user.id}.jpeg`;
 
   // form data
+  const [imgDataURL, setImgDataURL] = useState("");
   const [name, setName] = useState(user.name);
   const [handle, setHandle] = useState(user.handle);
 
   // prompts
+  const [imgError, setImgError] = useState("");
   const [nameError, setNameError] = useState("");
   const [handleError, setHandleError] = useState("");
   const [updatePrompt, setUpdatePrompt] = useState("");
@@ -89,7 +93,32 @@ function AccountSettings({}: Props) {
 
   // form validation
   function handleUpdateClick() {
-    sendUpdateUserSettings(name, handle);
+    if (imgError !== "") return;
+    sendUpdateUserSettings(name, handle, imgDataURL);
+  }
+
+  function handleImageFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    // Get the file
+    const files = e.target.files;
+    if (!files) return console.log("No files!");
+    const file = files[0];
+    console.log("Got file", file.name);
+
+    // Check if file size exceeds limit
+    if (file.size > 500000) {
+      return setImgError("Profile image can't exceed 500kB");
+    } else {
+      setImgError("");
+    }
+
+    const reader = new FileReader();
+
+    reader.addEventListener("load", () => {
+      console.log(reader.result);
+      setImgDataURL(reader.result as string);
+    });
+
+    reader.readAsDataURL(file);
   }
 
   useEffect(() => {
@@ -133,37 +162,18 @@ function AccountSettings({}: Props) {
         />
       </div>
 
-      {/* <p className="text-sm mt-3 mb-3">
-        <span className="font-semibold">Note:</span> updated names/handles only
-        appear to other users once they refresh the app.
-      </p> */}
-
       {/* Modal content */}
       <div className="flex mt-4 gap-10">
-        {/* Upload picture */}
-
-        <div className="w-60">
-          <form action="flex flex-col justify-center">
-            {/* Group picture */}
-            <img className="rounded-full w-full" src={avatar} alt="" />
-
-            {/* Upload button */}
-            <div className="">
-              <label
-                className="bg-slate-400 hover:bg-opacity-50 mt-6 w-full rounded-full font-semibold text-slate-100 text-lg py-2 outline-none cursor-pointer block text-center"
-                htmlFor="pfp_upload"
-              >
-                Choose photo
-              </label>
-              <input
-                id="pfp_upload"
-                name="pfp_upload"
-                className="hidden"
-                type="file"
-                accept="image/png, image/jpeg"
-              />
-            </div>
-          </form>
+        {/* Profile picture */}
+        <div className="w-60 self-center">
+          {/* Current image OR selected image preview */}
+          <img
+            className="rounded-full w-60 h-60 object-cover"
+            src={imgDataURL === "" ? defaultSrc : imgDataURL}
+            alt="lmao"
+          />
+          {/* Error prompt */}
+          <p className="w-full text-center italic text-sm pt-4">{imgError}</p>
         </div>
 
         {/* Form */}
@@ -188,6 +198,24 @@ function AccountSettings({}: Props) {
 
       {/* Modal footer */}
       <div className="flex w-full pt-6 items-center gap-6">
+        {/* Upload button */}
+        <div className="">
+          <label
+            className="bg-slate-400 hover:bg-opacity-50 py-3 w-60 rounded-full font-semibold text-slate-100 text-lg outline-none cursor-pointer block text-center"
+            htmlFor="pfp_upload"
+          >
+            Choose photo
+          </label>
+          <input
+            id="pfp_upload"
+            name="pfp_upload"
+            className="hidden"
+            type="file"
+            accept="image/jpeg"
+            onChange={handleImageFileSelect}
+          />
+        </div>
+
         {/* Update Prompt */}
         <p className="ml-auto">{updatePrompt}</p>
 

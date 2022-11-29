@@ -34,6 +34,12 @@ function GroupSettings({}: Props) {
   const [prompt, setPrompt] = useState("");
   const [updatePrompt, setUpdatePrompt] = useState("");
 
+  const defaultSrc = `http://localhost:8080/avatars/${group.id}.jpeg`;
+  const [imgDataURL, setImgDataURL] = useState("");
+
+  // errors
+  const [imgError, setImgError] = useState("");
+
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setName(e.target.value);
   }
@@ -59,7 +65,33 @@ function GroupSettings({}: Props) {
 
   // button click handler
   function handleUpdate() {
-    sendUpdateGroup(group.id, name, description, isPublic);
+    if (imgError !== "" || imgDataURL === "") return;
+    console.log("Got here");
+    sendUpdateGroup(group.id, name, description, isPublic, imgDataURL);
+  }
+
+  function handleImageFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    // Get the file
+    const files = e.target.files;
+    if (!files) return console.log("No files!");
+    const file = files[0];
+    console.log("Got file", file.name);
+
+    // Check if file size exceeds limit
+    if (file.size > 500000) {
+      return setImgError("Profile image can't exceed 500kB");
+    } else {
+      setImgError("");
+    }
+
+    const reader = new FileReader();
+
+    reader.addEventListener("load", () => {
+      console.log(reader.result);
+      setImgDataURL(reader.result as string);
+    });
+
+    reader.readAsDataURL(file);
   }
 
   useEffect(() => {
@@ -105,13 +137,32 @@ function GroupSettings({}: Props) {
       <div className="flex mt-4 gap-10">
         {/* Upload picture */}
         <div className="flex flex-col w-60 justify-center">
-          {/* Group picture */}
-          <img className="rounded-full w-full" src={creeper} alt="" />
+          {/* Current group image OR selected image preview */}
+          <img
+            className="rounded-full w-60 h-60 object-cover"
+            src={imgDataURL === "" ? defaultSrc : imgDataURL}
+            alt="lmao"
+          />
+          {/* Error prompt */}
+          <p className="w-full text-center italic text-sm pt-4">{imgError}</p>
 
           {/* Upload button */}
-          <button className="bg-slate-400 hover:bg-opacity-50 mt-6 w-full rounded-full font-semibold text-slate-100 text-lg py-2 outline-none">
-            Upload photo
-          </button>
+          <div className="mt-6">
+            <label
+              className="bg-slate-400 hover:bg-opacity-50 py-3 w-60 rounded-full font-semibold text-slate-100 text-lg outline-none cursor-pointer block text-center"
+              htmlFor="pfp_upload"
+            >
+              Choose photo
+            </label>
+            <input
+              id="pfp_upload"
+              name="pfp_upload"
+              className="hidden"
+              type="file"
+              accept="image/jpeg"
+              onChange={handleImageFileSelect}
+            />
+          </div>
         </div>
 
         {/* Form */}

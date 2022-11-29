@@ -5,6 +5,7 @@ import creeper from "../../assets/creeper.webp";
 import {
   faAngleRight,
   faArrowLeft,
+  faUsers,
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -22,9 +23,14 @@ function CreateGroup({}: Props) {
   const { sendCreateGroup } = useWebSockets();
   const createNewGroup = useChatsStore((state) => state.createNewGroup);
 
+  // form fields
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [isPublic, setIsPublic] = useState(false);
+  const [imgDataURL, setImgDataURL] = useState("");
+
+  // errors
+  const [imgError, setImgError] = useState("");
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setName(e.target.value);
@@ -35,8 +41,39 @@ function CreateGroup({}: Props) {
   }
 
   function handleClick() {
-    if (name === "" || description === "") return;
-    sendCreateGroup(name, description, isPublic);
+    if (
+      name === "" ||
+      description === "" ||
+      imgError !== "" ||
+      imgDataURL === ""
+    )
+      return;
+    // if (!imgDataURL) return setImgError("Please select an image");
+    sendCreateGroup(name, description, isPublic, imgDataURL);
+  }
+
+  function handleImageFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    // Get the file
+    const files = e.target.files;
+    if (!files) return console.log("No files!");
+    const file = files[0];
+    console.log("Got file", file.name);
+
+    // Check if file size exceeds limit
+    if (file.size > 500000) {
+      return setImgError("Profile image can't exceed 500kB");
+    } else {
+      setImgError("");
+    }
+
+    const reader = new FileReader();
+
+    reader.addEventListener("load", () => {
+      console.log(reader.result);
+      setImgDataURL(reader.result as string);
+    });
+
+    reader.readAsDataURL(file);
   }
 
   useEffect(() => {
@@ -69,12 +106,40 @@ function CreateGroup({}: Props) {
         {/* Upload picture */}
         <div className="flex flex-col w-60">
           {/* Group picture */}
-          <img className="rounded-full w-full" src={creeper} alt="" />
+          {imgDataURL !== "" ? (
+            // Image selected
+            <img className="rounded-full w-60 h-60" src={imgDataURL} alt="" />
+          ) : (
+            // Placeholder
+            <div className="rounded-full w-60 h-60 bg-slate-300 border-8 border-slate-400 flex justify-center items-center">
+              {/* <p className="text-slate-400"></p> */}
+              <FontAwesomeIcon
+                className="text-slate-400 text-7xl"
+                icon={faUsers}
+              />
+            </div>
+          )}
+
+          {/* Image error prompt */}
+          <p className="w-full text-center italic text-sm pt-4">{imgError}</p>
 
           {/* Upload button */}
-          <button className="bg-slate-400 hover:bg-opacity-50 mt-auto w-full rounded-full font-semibold text-slate-100 text-lg py-2 outline-none">
-            Upload photo
-          </button>
+          <div className="mt-6">
+            <label
+              className="bg-slate-400 hover:bg-opacity-50 py-3 w-60 rounded-full font-semibold text-slate-100 text-lg outline-none cursor-pointer block text-center"
+              htmlFor="pfp_upload"
+            >
+              Choose photo
+            </label>
+            <input
+              id="pfp_upload"
+              name="pfp_upload"
+              className="hidden"
+              type="file"
+              accept="image/jpeg"
+              onChange={handleImageFileSelect}
+            />
+          </div>
         </div>
 
         {/* Form */}
@@ -96,7 +161,7 @@ function CreateGroup({}: Props) {
             placeholder="Simply the best group chat ever created. Change my mind"
             onInput={handleInput}
             value={description}
-            rows={2}
+            rows={3}
           ></textarea>
 
           {/* Public/Private toggle */}
@@ -139,7 +204,10 @@ function CreateGroup({}: Props) {
           className={`
             bg-slate-400 w-14 h-14 rounded-full flex-shrink-0 ml-auto flex items-center justify-center
             ${
-              name === "" || description === ""
+              name === "" ||
+              description === "" ||
+              imgError !== "" ||
+              imgDataURL === ""
                 ? "bg-opacity-50"
                 : "cursor-pointer hover:bg-opacity-50"
             }
