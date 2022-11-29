@@ -5,8 +5,10 @@ import { CurrentUserType } from "../data";
 
 interface State {
   user: CurrentUserType;
+  lastImageUpdate: Date;
   userInfoInit: (id: string, name: string, handle: string) => void;
   updateInfo: (name: string, handle: string) => void;
+  resetLastImageUpdate: () => void;
 }
 
 export const useUserStore = create<State>()(
@@ -19,6 +21,9 @@ export const useUserStore = create<State>()(
         handle: "",
         pfp_url: avatar,
       },
+
+      lastImageUpdate: new Date(),
+
       userInfoInit: (id: string, name: string, handle: string) => {
         set((state) => ({ user: { ...state.user, id, name, handle } }));
       },
@@ -28,6 +33,10 @@ export const useUserStore = create<State>()(
         set((state) => ({
           user: { ...state.user, name, handle },
         }));
+      },
+
+      resetLastImageUpdate: () => {
+        set((state) => ({ ...state, lastImageUpdate: new Date() }));
       },
     }),
     {

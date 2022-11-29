@@ -42,6 +42,8 @@ interface State {
   updateLatest: (chatId: string, newLatest: Date) => void;
   chatHasUser: (chatId: string, userId: string) => boolean;
   updateUserInfoInChats: (userId: string, handle: string, name: string) => void;
+  resetLastUserImageUpdate: (userId: string) => void;
+  resetLastGroupImageUpdate: (groupId: string) => void;
   removeMemberFromGroup: (groupId: string, memberId: string) => void;
 }
 
@@ -79,6 +81,7 @@ export const useChatsStore = create<State>()(
           inputBuffer: "",
           type: "dm",
           contact: contact,
+          lastImageUpdate: new Date(),
         };
 
         set((state) => ({
@@ -109,6 +112,7 @@ export const useChatsStore = create<State>()(
           })),
           createdBy: { ...data.creator, pfp_url: avatar },
           createdAt: data.createdAt,
+          lastImageUpdate: new Date(),
         };
 
         set((state) => ({
@@ -216,6 +220,7 @@ export const useChatsStore = create<State>()(
           sender: { ...data.author, pfp_url: avatar },
           content: data.content,
           createdAt: data.createdAt,
+          lastImageUpdate: new Date(),
         };
 
         set((state) => {
@@ -349,6 +354,47 @@ export const useChatsStore = create<State>()(
                   ...chat,
                   members: chat.members.filter((m) => m.id !== memberId),
                 }
+              : chat
+          ),
+        }));
+      },
+
+      resetLastUserImageUpdate: (userId) => {
+        const chatHasUser = get().chatHasUser;
+        const newChats = get().chats.map((chat) => {
+          const hasUser = chatHasUser(chat.id, userId);
+
+          console.log(
+            `Chat ID ${chat.id}, type ${chat.type},  does ${
+              hasUser ? "" : "not"
+            } have user ID ${userId}`
+          );
+
+          if (hasUser) {
+            return {
+              ...chat,
+              lastImageUpdate: new Date(),
+              messages: chat.messages.map((message) => ({
+                ...message,
+                lastImageUpdate:
+                  message.sender.id === userId
+                    ? new Date()
+                    : message.lastImageUpdate,
+              })),
+            };
+          } else {
+            return chat;
+          }
+        });
+        set((state) => ({ chats: newChats }));
+      },
+
+      resetLastGroupImageUpdate: (groupId) => {
+        set((state) => ({
+          ...state,
+          chats: get().chats.map((chat) =>
+            chat.type === "group"
+              ? { ...chat, lastImageUpdate: new Date() }
               : chat
           ),
         }));

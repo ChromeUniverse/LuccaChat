@@ -14,6 +14,7 @@ interface State {
     name: string,
     handle: string
   ) => void;
+  resetLastImageUpdate: (userId: string) => void;
 }
 
 export const useRequestsStore = create<State>()(
@@ -28,6 +29,7 @@ export const useRequestsStore = create<State>()(
           id: data.id,
           sentAt: data.createdAt,
           sender: { ...data.sender, pfp_url: avatar },
+          lastImageUpdate: new Date(),
         };
 
         set((state) => ({
@@ -50,6 +52,15 @@ export const useRequestsStore = create<State>()(
             r.sender.id === userId
               ? { ...r, sender: { ...r.sender, name: name, handle: handle } }
               : r
+          ),
+        }));
+      },
+
+      resetLastImageUpdate: (userId) => {
+        set((state) => ({
+          ...state,
+          requests: get().requests.map((r) =>
+            r.sender.id === userId ? { ...r, lastImageUpdate: new Date() } : r
           ),
         }));
       },
