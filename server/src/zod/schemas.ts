@@ -26,6 +26,8 @@ export const baseDataSchema = z.object({
     "error-request",
     "add-request",
     "remove-request",
+    // update image
+    "update-image",
   ]),
 });
 
@@ -54,6 +56,7 @@ export const userPassportSchema = z.object({
 export const updateUserSettingsSchema = baseDataSchema.extend({
   name: z.string(),
   handle: z.string(),
+  image: z.string().optional(),
 });
 
 // Update user info error
@@ -102,6 +105,7 @@ export const createGroupSchema = baseDataSchema.extend({
   name: z.string(),
   description: z.string(),
   isPublic: z.boolean(),
+  image: z.string().url(),
 });
 
 // Update group info
@@ -112,6 +116,7 @@ export const updateGroupSchema = baseDataSchema.extend({
   name: z.string(),
   description: z.string(),
   isPublic: z.boolean(),
+  image: z.string().url().optional(),
 });
 
 // Delete group
@@ -177,4 +182,13 @@ export const addRequestSchema = baseDataSchema.extend({
 export const removeRequestSchema = baseDataSchema.extend({
   requestId: z.string().uuid(),
   action: z.enum(["accept", "reject"]),
+});
+
+//---------------------------------------------------------------
+
+// Update profile picture
+// SERVER -> CLIENT
+export const updateImageSchema = baseDataSchema.extend({
+  id: z.string().uuid(),
+  objectType: z.enum(["user", "group"]),
 });
