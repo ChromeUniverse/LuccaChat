@@ -9,6 +9,7 @@ import { userSchema } from "../zod/schemas";
 import jwt from "jsonwebtoken";
 import { asyncJWTsign } from "../misc/jwt";
 import { UserJwtToSend } from "../../types/jwt";
+import { downloadPFP } from "../misc";
 
 // Prisma setup
 const prisma = new PrismaClient();
@@ -49,6 +50,7 @@ passport.use(
       if (foundUser) return done(null, foundUser);
 
       // User logging in for the first time
+      // First add the user to DB...
       const createdUser = await prisma.user.create({
         data: {
           name: profile.displayName,
@@ -57,6 +59,9 @@ passport.use(
           authProviderId: profile.id,
         },
       });
+
+      // ...then download their profile picture from Google
+      await downloadPFP(createdUser.id, profile._json.picture as string);
 
       return done(null, createdUser);
     }
@@ -83,7 +88,8 @@ passport.use(
       // User found
       if (foundUser) return done(null, foundUser);
 
-      // User logging in for the first time
+      // User logging in for the first time:
+      // first, add new user to DB...
       const createdUser = await prisma.user.create({
         data: {
           name: profile.displayName,
@@ -92,6 +98,10 @@ passport.use(
           authProviderId: profile.id,
         },
       });
+
+      // then download their profile picture from GitHub
+      const photos = profile.photos as { value: string }[];
+      await downloadPFP(createdUser.id, photos[0].value);
 
       return done(null, createdUser);
     }
