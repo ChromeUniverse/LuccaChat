@@ -22,6 +22,7 @@ import {
   setUserInfoSchema,
   updateUserSettingsSchema,
   errorUserInfoSchema,
+  updateImageSchema,
 } from "../../../server/src/zod/schemas";
 import { JsonSuperParse } from "../misc";
 import { messageSchema } from "../../../server/src/zod/api-messages";
@@ -91,12 +92,18 @@ function sendRemoveRequest(requestId: string, action: "reject" | "accept") {
   console.log("sent remove request");
 }
 
-function sendCreateGroup(name: string, description: string, isPublic: boolean) {
+function sendCreateGroup(
+  name: string,
+  description: string,
+  isPublic: boolean,
+  image: string
+) {
   const data: z.infer<typeof createGroupSchema> = {
     dataType: "create-group",
     name: name,
     description: description,
     isPublic: isPublic,
+    image: image,
   };
   ws.send(JSON.stringify(data));
   console.log("sent create group");
@@ -106,7 +113,8 @@ function sendUpdateGroup(
   groupId: string,
   name: string,
   description: string,
-  isPublic: boolean
+  isPublic: boolean,
+  image: string
 ) {
   const data: z.infer<typeof updateGroupSchema> = {
     dataType: "update-group",
@@ -114,6 +122,7 @@ function sendUpdateGroup(
     name: name,
     description: description,
     isPublic: isPublic,
+    image: image,
   };
   ws.send(JSON.stringify(data));
   console.log("sent update group");
@@ -137,11 +146,12 @@ function sendRegenInvite(groupId: string) {
   console.log("sent invite regen");
 }
 
-function sendUpdateUserSettings(name: string, handle: string) {
+function sendUpdateUserSettings(name: string, handle: string, image: string) {
   const data: z.infer<typeof updateUserSettingsSchema> = {
     dataType: "update-user-settings",
     name: name,
     handle: handle,
+    image: image,
   };
   ws.send(JSON.stringify(data));
   console.log("sent update user settings");
@@ -317,6 +327,30 @@ export default function useWebSockets() {
         removeMember(removedMemberData.groupId, removedMemberData.memberId);
         // event emitter
         emitter.emit("memberKicked", removedMemberData);
+      }
+
+      // update images
+      if (data.dataType === "update-image") {
+        const { objectType, id } = updateImageSchema.parse(jsonData);
+
+        // Reset image functions
+        const currentUser = useUserStore.getState().user;
+        const resetUser = useUserStore.getState().resetLastImageUpdate;
+        const resetRequest = useRequestsStore.getState().resetLastImageUpdate;
+        const resetGroup = useChatsStore.getState().resetLastGroupImageUpdate;
+        const resetUserChats =
+          useChatsStore.getState().resetLastUserImageUpdate;
+
+        if (objectType === "user") {
+          resetUserChats(id);
+          if (id === currentUser.id) resetUser();
+          else {
+            // resetUserChats(id);
+            resetRequest(id);
+          }
+        }
+
+        if (objectType === "group") resetGroup(id);
       }
     });
     return () => {
