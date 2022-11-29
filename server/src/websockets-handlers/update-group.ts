@@ -1,7 +1,13 @@
 import { WebSocket } from "ws";
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
-import { baseDataSchema, updateGroupSchema } from "../zod/schemas";
+import {
+  baseDataSchema,
+  updateGroupSchema,
+  updateImageSchema,
+} from "../zod/schemas";
+import path from "path";
+import fs from "fs/promises";
 
 export async function handleUpdateGroup(
   ws: WebSocket,
@@ -49,20 +55,39 @@ export async function handleUpdateGroup(
     },
   });
 
+  // Save base64 image to filesystem
+  if (updatedGroupData.image) {
+    const imgPath = path.join(
+      __dirname,
+      "..",
+      "..",
+      "avatars",
+      `${updatedGroup.id}.jpeg`
+    );
+    console.log(imgPath);
+
+    console.log("got here!!");
+    const base64data = updatedGroupData.image.split(";base64,").pop();
+    const buffer = Buffer.from(base64data as string, "base64");
+    await fs.writeFile(imgPath, buffer);
+  }
+
   // Send group data to group creator
   const dataToSend: z.infer<typeof baseDataSchema> = {
     ...updatedGroupData,
     dataType: "update-group",
   };
 
-  // Boardcast to all clients connected to this chat
-  // const clientUserIds = updatedGroup.members.map((m) => m.id);
-  // wsUserMap.forEach((userId, ws) => {
-  //   if (!clientUserIds.includes(userId)) return;
-  //   if (ws.readyState === WebSocket.OPEN) {
-  //     ws.send(JSON.stringify(dataToSend));
-  //   }
-  // });
+  // Format update group image data
+  const updateImageDataToSend: z.infer<typeof updateImageSchema> = {
+    dataType: "update-image",
+    objectType: "group",
+    id: updatedGroup.id,
+  };
+
+  if (updatedGroupData.image) {
+    ws.send(JSON.stringify(updateImageDataToSend));
+  }
 
   const onlineClients: WebSocket[] = [];
   updatedGroup.members.forEach((m) => {
@@ -73,6 +98,9 @@ export async function handleUpdateGroup(
   onlineClients.forEach((ws) => {
     if (ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify(dataToSend));
+      if (updatedGroupData.image) {
+        ws.send(JSON.stringify(updateImageDataToSend));
+      }
     }
   });
 }

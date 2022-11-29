@@ -111,7 +111,7 @@ export async function handleRemoveRequest(
 
   onlineClients.forEach((ws) => {
     if (ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify(dataToSend));
+      ws.send(JSON.stringify(dmDataToSend));
     }
   });
 }

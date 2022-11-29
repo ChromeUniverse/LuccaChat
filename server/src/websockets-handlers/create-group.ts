@@ -1,10 +1,11 @@
-import { WebSocket, WebSocketServer } from "ws";
+import { WebSocket } from "ws";
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
 import { baseDataSchema, createGroupSchema } from "../zod/schemas";
 import { nanoid } from "nanoid";
-import { chatSchema, ChatSchemaType } from "../zod/api-chats";
-import { userInfo } from "os";
+import { chatSchema } from "../zod/api-chats";
+import path from "path";
+import fs from "fs/promises";
 
 export async function handleCreateGroup(
   ws: WebSocket,
@@ -12,7 +13,8 @@ export async function handleCreateGroup(
   jsonData: any
 ) {
   // Extract new group data from WS message
-  const { name, description, isPublic } = createGroupSchema.parse(jsonData);
+  const { name, description, isPublic, image } =
+    createGroupSchema.parse(jsonData);
 
   // Create new group in DB
   const createdGroup = await prisma.chat.create({
@@ -56,6 +58,21 @@ export async function handleCreateGroup(
       },
     },
   });
+
+  // Save base64 image to filesystem
+  const imgPath = path.join(
+    __dirname,
+    "..",
+    "..",
+    "avatars",
+    `${createdGroup.id}.jpeg`
+  );
+  console.log(imgPath);
+
+  console.log("got here!!");
+  const base64data = image.split(";base64,").pop();
+  const buffer = Buffer.from(base64data as string, "base64");
+  await fs.writeFile(imgPath, buffer);
 
   // Send group data to group creator
   const groupDataToSend: z.infer<typeof chatSchema> = createdGroup;

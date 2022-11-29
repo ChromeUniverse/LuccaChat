@@ -1,9 +1,12 @@
 import { WebSocket } from "ws";
+import path from "path";
+import fs from "fs/promises";
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
 import {
   errorUserInfoSchema,
   setUserInfoSchema,
+  updateImageSchema,
   updateUserSettingsSchema,
 } from "../zod/schemas";
 import { getWSfromUserId } from "../misc";
@@ -24,6 +27,18 @@ export async function handleUpdateUserSettings(
   // basic sanity checks
   if (name === "") nameError = "This can't be blank";
   if (handle === "") handleError = "This can't be blank";
+
+  // Char limit checks
+  if (name.length > 20) nameError = "Please limit your name to 20 characters";
+  if (handle.length > 15) {
+    handleError = "Please limit your handle to 15 characters";
+  }
+
+  // Check handle for whitespaces
+  const handleChars = handle.split("");
+  if (handleChars.includes(" ")) {
+    handleError = "Handles can't have whitespaces";
+  }
 
   // Check if user is actually in DB (checking by ID)
   const userToUpdate = await prisma.user.findUnique({
@@ -53,6 +68,23 @@ export async function handleUpdateUserSettings(
     return ws.send(JSON.stringify(dataToSend));
   }
 
+  // Save base64 image to filesystem
+  if (updatedUserData.image) {
+    const imgPath = path.join(
+      __dirname,
+      "..",
+      "..",
+      "avatars",
+      `${ws.userId}.jpeg`
+    );
+    console.log(imgPath);
+
+    console.log("got here!!");
+    const base64data = updatedUserData.image.split(";base64,").pop();
+    const buffer = Buffer.from(base64data as string, "base64");
+    await fs.writeFile(imgPath, buffer);
+  }
+
   // Update user's info in DB, pull related chats
   const updatedUser = await prisma.user.update({
     where: {
@@ -75,7 +107,7 @@ export async function handleUpdateUserSettings(
     },
   });
 
-  // Format update user info data to send down the wire
+  // Format update user data, send it down the wire, back to the user
   const dataToSend: z.infer<typeof setUserInfoSchema> = {
     dataType: "set-user-info",
     userId: updatedUser.id,
@@ -83,8 +115,18 @@ export async function handleUpdateUserSettings(
     handle: updatedUser.handle,
   };
 
-  // Send it back to the user
   ws.send(JSON.stringify(dataToSend));
+
+  // Format update group image data
+  const updateImageDataToSend: z.infer<typeof updateImageSchema> = {
+    dataType: "update-image",
+    objectType: "user",
+    id: ws.userId,
+  };
+
+  if (updatedUserData.image) {
+    ws.send(JSON.stringify(updateImageDataToSend));
+  }
 
   // Building set of all clients connected to this user's chats:
   const clientUserIdSet = new Set<string>();
@@ -106,6 +148,9 @@ export async function handleUpdateUserSettings(
   onlineClients.forEach((ws) => {
     if (ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify(dataToSend));
+      if (updatedUserData.image) {
+        ws.send(JSON.stringify(updateImageDataToSend));
+      }
     }
   });
 }
