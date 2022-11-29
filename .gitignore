@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 secrets.txt
 .env
+server/src/routers/github-profile.txt
+server/src/routers/google-profile.txt
+avatars 
