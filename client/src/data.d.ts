@@ -12,6 +12,7 @@ export interface MessageType {
   sender: UserType;
   content: string;
   createdAt: Date;
+  lastImageUpdate: Date;
 }
 
 export interface ChatType {
@@ -19,6 +20,7 @@ export interface ChatType {
   latest: Date;
   messages: MessageType[];
   inputBuffer: string;
+  lastImageUpdate: Date;
 }
 
 export interface GroupType extends ChatType {
@@ -42,4 +44,5 @@ export interface RequestType {
   id: string;
   sender: UserType;
   sentAt: Date;
+  lastImageUpdate: Date;
 }
