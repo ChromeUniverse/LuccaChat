@@ -38,6 +38,7 @@ function Sidebar({}: Props) {
 
   // Fetch current user
   const currentUser = useUserStore((state) => state.user);
+  const lastImageUpdate = useUserStore((state) => state.lastImageUpdate);
 
   // Fetch chats, sort by latest first
   const chats = useChatsStore((state) => state.chats);
@@ -59,8 +60,15 @@ function Sidebar({}: Props) {
       {/* Sidebar Header */}
       <div className="flex-shrink-0 w-full bg-slate-300 px-5 h-20 flex items-center">
         {/* Avatar */}
-        <div className="bg-slate-900 w-12 h-12 flex items-center justify-center rounded-full select-none">
-          <img className="w-[90%] rounded-full" src={avatar} alt="" />
+        <div className="w-12 h-12 flex items-center justify-center rounded-full select-none">
+          <img
+            className="w-12 h-12 rounded-full object-cover"
+            key={Date.now()}
+            src={`${import.meta.env.VITE_BACKEND_URL}/avatars/${
+              currentUser.id
+            }.jpeg?${lastImageUpdate.getTime()}`}
+            alt=""
+          />
         </div>
 
         {/* Name */}
@@ -226,16 +234,16 @@ function Sidebar({}: Props) {
                   <Contact
                     key={chat.id}
                     user={chat.contact}
-                    // unread={chat.unread}
                     chatId={chat.id}
+                    lastImageUpdate={chat.lastImageUpdate}
                   />
                 ) : (
                   <Group
                     key={chat.id}
                     name={chat.name}
                     members={chat.members.length}
-                    // unread={chat.unread}
                     chatId={chat.id}
+                    lastImageUpdate={chat.lastImageUpdate}
                   />
                 );
               })}

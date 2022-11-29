@@ -61,10 +61,15 @@ function Home({}: Props) {
   return (
     <div className="bg-slate-200 w-full h-full flex flex-col items-center justify-center">
       {/* Home view header */}
-      <header className="flex gap-3">
-        <h1 className="text-5xl">
+
+      {/* <p className="text-3xl font-semibold">Welcome to</p> */}
+      <header className="flex gap-4">
+        <h1 className="text-5xl font-light">
           Welcome to <span className="font-bold text-sky-600">LuccaChat</span>
         </h1>
+
+        {/* <h1 className="text-6xl font-bold text-sky-600">LuccaChat</h1> */}
+
         <FontAwesomeIcon
           className="text-5xl text-sky-600"
           icon={faCommentDots}

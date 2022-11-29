@@ -123,7 +123,13 @@ function InfoPanel({ type, user, group }: Props) {
         {type === "group" && (
           <>
             {/* Group Avatar */}
-            <img className="w-60 rounded-full" src={creeper} alt="" />
+            <img
+              className="w-60 h-60 rounded-full object-cover"
+              src={`${import.meta.env.VITE_BACKEND_URL}/avatars/${
+                groupData.id
+              }.jpeg?${groupData.lastImageUpdate.getTime()}`}
+              alt=""
+            />
 
             {/* Group name, number of members */}
             <div className="flex flex-col gap-1 items-center">
@@ -166,6 +172,7 @@ function InfoPanel({ type, user, group }: Props) {
                     key={m.id}
                     user={m}
                     openInfoOnClick={m.id !== currentUser.id}
+                    lastImageUpdate={groupData.lastImageUpdate}
                   />
                 ))}
             </div>
@@ -175,7 +182,13 @@ function InfoPanel({ type, user, group }: Props) {
         {type === "user" && (
           <>
             {/* User Avatar */}
-            <img className="w-60 rounded-full" src={avatar} alt="" />
+            <img
+              className="w-60 h-60 rounded-full object-cover"
+              src={`${import.meta.env.VITE_BACKEND_URL}/avatars/${
+                userData.id
+              }.jpeg?${Date.now()}`}
+              alt=""
+            />
             {/* User name/handle */}
             <div className="flex flex-col gap-1 items-center">
               <p className="text-2xl font-semibold">{userData.name}</p>

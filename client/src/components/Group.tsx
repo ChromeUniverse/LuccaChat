@@ -6,10 +6,10 @@ interface Props {
   name: string;
   members: number;
   chatId?: string;
-  unread?: number;
+  lastImageUpdate?: Date;
 }
 
-function Group({ name, members, chatId, unread }: Props) {
+function Group({ name, members, chatId, lastImageUpdate = new Date() }: Props) {
   const currentChatId = useChatsStore((state) => state.currentChatId);
   const setChatId = useChatsStore((state) => state.setCurrentChatId);
 
@@ -24,7 +24,13 @@ function Group({ name, members, chatId, unread }: Props) {
       }}
     >
       {/* Avatar */}
-      <img className="w-14 h-14 rounded-full" src={creeper} alt="" />
+      <img
+        className="w-14 h-14 rounded-full object-cover"
+        src={`${
+          import.meta.env.VITE_BACKEND_URL
+        }/avatars/${chatId}.jpeg?${lastImageUpdate.getTime()}`}
+        alt=""
+      />
 
       {/* Group Name */}
       <div className="flex flex-col">

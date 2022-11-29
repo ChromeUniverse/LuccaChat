@@ -9,6 +9,7 @@ interface Props {
   chatId?: string;
   highlight?: boolean;
   openInfoOnClick?: boolean;
+  lastImageUpdate?: Date;
 }
 
 function Contact({
@@ -16,6 +17,7 @@ function Contact({
   chatId,
   highlight = false,
   openInfoOnClick = false,
+  lastImageUpdate = new Date(),
 }: Props) {
   const currentChatId = useChatsStore((state) => state.currentChatId);
   const setChatId = useChatsStore((state) => state.setCurrentChatId);
@@ -34,7 +36,13 @@ function Contact({
       }}
     >
       {/* Avatar */}
-      <img className="w-14 h-14 rounded-full" src={user.pfp_url} alt="" />
+      <img
+        className="w-14 h-14 rounded-full object-cover"
+        src={`${import.meta.env.VITE_BACKEND_URL}/avatars/${
+          user.id
+        }.jpeg?${lastImageUpdate.getTime()}`}
+        alt=""
+      />
 
       {/* Contact Name */}
       <div className="flex flex-col">

@@ -248,10 +248,6 @@ function Chat() {
     else setShowJumpButton(false);
   }
 
-  function conditionalScrollToBottom() {
-    if (getScrollDiff() < 300) scrollToBottom();
-  }
-
   function scrollToBottom(smooth = true) {
     const bottom = messagesEndRef.current as unknown as HTMLElement;
     bottom.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
@@ -278,10 +274,18 @@ function Chat() {
       {/* Chat Header */}
       <div className="relative w-full bg-slate-300 pl-5 pr-8 h-20 flex items-center flex-shrink-0">
         {/* Chat profile picture */}
-        <div className="bg-slate-900 w-12 h-12 flex flex-shrink-0 items-center justify-center rounded-full select-none">
+        <div className="w-12 h-12 flex flex-shrink-0 items-center justify-center rounded-full select-none">
           <img
-            className="w-[90%] rounded-full"
-            src={chat.type === "dm" ? chat.contact.pfp_url : chat.group_pfp_url}
+            className="w-12 h-12 rounded-full object-cover"
+            src={
+              chat.type === "dm"
+                ? `${import.meta.env.VITE_BACKEND_URL}/avatars/${
+                    chat.contact.id
+                  }.jpeg?${chat.lastImageUpdate.getTime()}`
+                : `${import.meta.env.VITE_BACKEND_URL}/avatars/${
+                    chat.id
+                  }.jpeg?${chat.lastImageUpdate.getTime()}`
+            }
             alt=""
           />
         </div>
@@ -352,6 +356,7 @@ function Chat() {
             open={open === m.id}
             setOpen={setOpen}
             handleClick={handleClick}
+            lastImageUpdate={m.lastImageUpdate}
           />
         ))}
         <div id="messages-end" ref={messagesEndRef} />

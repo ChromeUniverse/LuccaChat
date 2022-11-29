@@ -116,6 +116,7 @@ interface Props {
   open: boolean;
   setOpen: Dispatch<SetStateAction<string | null>>;
   handleClick: (id: string) => void;
+  lastImageUpdate: Date;
 }
 
 function Message({
@@ -126,6 +127,7 @@ function Message({
   sender,
   content,
   handleClick,
+  lastImageUpdate,
 }: Props) {
   const showUserInfo = useInfoStore((state) => state.showUserInfo);
   const { deleteMessage } = useWebSockets();
@@ -138,8 +140,14 @@ function Message({
     `}
     >
       {/* User Avatar */}
-      <div className="bg-slate-900 w-12 h-12 flex items-center justify-center rounded-full select-none">
-        <img className="w-[90%] rounded-full" src={sender.pfp_url} alt="" />
+      <div className="w-12 h-12 flex items-center justify-center rounded-full select-none">
+        <img
+          className="w-12 h-12 rounded-full"
+          src={`${import.meta.env.VITE_BACKEND_URL}/avatars/${
+            sender.id
+          }.jpeg?${lastImageUpdate}`}
+          alt=""
+        />
       </div>
 
       {/* Messsage content */}
