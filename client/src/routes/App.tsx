@@ -33,6 +33,7 @@ import {
   errorUserInfoSchema,
   removeMemberSchema,
 } from "../../../server/src/zod/schemas";
+import axios, { AxiosError } from "axios";
 
 type Events = {
   addChatMessage: any;
@@ -67,7 +68,13 @@ function App() {
       const userInfoInit = useUserStore.getState().userInfoInit;
 
       // Initialize user profile
-      const currentUser = await fetchCurrentUser();
+      let currentUser = { name: "", id: "", handle: "" };
+      try {
+        currentUser = await fetchCurrentUser();
+      } catch (error) {
+        const status = (error as AxiosError).response?.status;
+        if (status !== 200) window.location.replace("/");
+      }
       userInfoInit(currentUser.id, currentUser.name, currentUser.handle);
 
       // Fetching chats
