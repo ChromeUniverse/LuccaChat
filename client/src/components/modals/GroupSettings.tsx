@@ -19,6 +19,9 @@ import { GroupType } from "../../data";
 import { useDebouncedCallback } from "use-debounce";
 import { emitter } from "../../routes/App";
 import useWebSockets from "../../hooks/useWebSockets";
+import { copyInviteLinkToClipboard } from "../../misc";
+import { errorGroupInfoSchema } from "../../../../server/src/zod/schemas";
+import { z } from "zod";
 
 type Props = {};
 
@@ -39,6 +42,8 @@ function GroupSettings({}: Props) {
 
   // errors
   const [imgError, setImgError] = useState("");
+  const [nameError, setNameError] = useState("");
+  const [descriptionError, setDescriptionError] = useState("");
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setName(e.target.value);
@@ -57,6 +62,7 @@ function GroupSettings({}: Props) {
   function handleInviteClick(type: "copy" | "reset") {
     if (type === "copy") {
       setPrompt("Copied!");
+      copyInviteLinkToClipboard(group);
       debouncedClearPrompt();
     } else {
       sendRegenInvite(group.id);
@@ -65,8 +71,8 @@ function GroupSettings({}: Props) {
 
   // button click handler
   function handleUpdate() {
-    if (imgError !== "" || imgDataURL === "") return;
     console.log("Got here");
+    if (imgError !== "") return;
     sendUpdateGroup(group.id, name, description, isPublic, imgDataURL);
   }
 
@@ -95,10 +101,23 @@ function GroupSettings({}: Props) {
   }
 
   useEffect(() => {
+    const groupInfoErrorHandler = (
+      data: z.infer<typeof errorGroupInfoSchema>
+    ) => {
+      console.log("group info error handler fired!!!");
+      setNameError(data.nameError);
+      setDescriptionError(data.descriptionError);
+    };
+
     const groupUpdateHandler = (groupId: string) => {
       // ignore event if the event's group ID doesn't match this group's ID
       if (groupId !== group.id) return;
-      console.log("update group fired!!!");
+
+      // Clear errors
+      setNameError("");
+      setDescriptionError("");
+
+      // Show "update" message prompt
       setUpdatePrompt("Updated!");
       debouncedClearUpdatePrompt();
     };
@@ -113,10 +132,12 @@ function GroupSettings({}: Props) {
 
     emitter.on("groupUpdated", groupUpdateHandler);
     emitter.on("inviteSet", inviteUpdateHandler);
+    emitter.on("errorGroupInfo", groupInfoErrorHandler);
 
     return () => {
       emitter.off("groupUpdated", groupUpdateHandler);
       emitter.off("inviteSet", inviteUpdateHandler);
+      emitter.off("errorGroupInfo", groupInfoErrorHandler);
     };
   }, []);
 
@@ -170,25 +191,30 @@ function GroupSettings({}: Props) {
           {/* Name input */}
           <p className="pb-2">Name</p>
           <input
-            className="w-full py-3 mb-5 px-5 bg-slate-200 rounded-xl outline-none"
+            className="w-full py-3 px-5 bg-slate-200 rounded-xl outline-none"
             placeholder="My awesome group"
             value={name}
             onChange={handleChange}
             type="text"
           />
+          <p className="mt-3 text-sm italic text-slate-500">{nameError}</p>
 
           {/* Description input */}
-          <p className="pb-2">Description</p>
+          <p className="pb-2 mt-5">Description</p>
           <textarea
-            className="w-full py-3 mb-5 px-5 bg-slate-200 rounded-xl outline-none resize-none"
+            className="w-full py-3 px-5 bg-slate-200 rounded-xl outline-none resize-none"
             placeholder="Simply the best group chat ever created. Change my mind"
             onInput={handleInput}
             value={description}
             rows={3}
           ></textarea>
+          {/* Description error prompt */}
+          <p className="mt-3 text-sm italic text-slate-500">
+            {descriptionError}
+          </p>
 
           {/* Public/Private toggle */}
-          <div className="flex justify-between items-center">
+          <div className="mt-5 flex justify-between items-center">
             {/* Label */}
             <p>Make this group public</p>
 
@@ -225,12 +251,16 @@ function GroupSettings({}: Props) {
             <div className="flex gap-4 mb-2">
               <p className="flex-shrink-0 mr-auto">Invite Link</p>
               {prompt && <p className="text-slate-600 select-none">{prompt}</p>}
+
+              {/* Copy invite link button */}
               <FontAwesomeIcon
                 className="text-slate-700 hover:text-slate-500 cursor-pointer"
                 size="lg"
                 icon={faClipboard}
                 onClick={() => handleInviteClick("copy")}
               />
+
+              {/* Reset invite link button */}
               <FontAwesomeIcon
                 className="text-slate-700 hover:text-slate-500 cursor-pointer"
                 size="lg"
@@ -239,8 +269,10 @@ function GroupSettings({}: Props) {
               />
             </div>
             <div className="flex items-center gap-3 w-full py-3 px-0 bg-slate-200 rounded-xl outline-none select-none">
-              <p className="text-slate-600 w-full text-center mr-auto text-[15px]">
-                luccachat.app/invite/{group.inviteCode}
+              <p className="text-slate-600 w-full text-center mr-auto text-[13px] select-text">
+                {`${import.meta.env.VITE_REACT_APP_URL}/invite/${
+                  group.inviteCode
+                }`}
               </p>
             </div>
           </div>

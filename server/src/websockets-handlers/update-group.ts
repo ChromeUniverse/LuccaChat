@@ -1,8 +1,11 @@
+// ------------------------------------------------
+
 import { WebSocket } from "ws";
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
 import {
   baseDataSchema,
+  errorGroupInfoSchema,
   updateGroupSchema,
   updateImageSchema,
 } from "../zod/schemas";
@@ -16,29 +19,64 @@ export async function handleUpdateGroup(
   jsonData: any
 ) {
   // Extract updated group data from WS message
-  const updatedGroupData = updateGroupSchema.parse(jsonData);
+  const data = updateGroupSchema.parse(jsonData);
 
-  // Check if user who invoked this is the group's creator
+  // First check if his group even exists in the first place
   const groupToUpdate = await prisma.chat.findUnique({
-    where: { id: updatedGroupData.groupId },
+    where: { id: data.groupId },
     select: { creatorId: true },
   });
 
-  if (groupToUpdate?.creatorId !== ws.userId) {
+  if (!groupToUpdate) {
     throw new Error(
-      `VIOLATION: User ${ws.userId} tried updating Group ${updatedGroupData.groupId}`
+      `VIOLATION: User ${ws.userId} tried updating non-existent group ${data.groupId}`
     );
+  }
+
+  // Check if user who invoked this is the group's creator
+  if (groupToUpdate.creatorId !== ws.userId) {
+    throw new Error(
+      `VIOLATION: User ${ws.userId} tried updating Group ${data.groupId}`
+    );
+  }
+
+  let nameError = "";
+  let descriptionError = "";
+
+  // basic sanity checks
+  if (data.name === "") nameError = "This can't be blank";
+  if (data.description === "") descriptionError = "This can't be blank";
+
+  // Char limit checks
+  if (data.name.length > 20) {
+    nameError = "Group name can't exceed 20 characters";
+  }
+
+  if (data.description.length > 150) {
+    descriptionError = "Description can't exceed 150 characters";
+  }
+
+  // Check if there are any errors, send 'em down the wire
+  if (nameError !== "" || descriptionError !== "") {
+    console.log("Sending errors...");
+
+    const dataToSend: z.infer<typeof errorGroupInfoSchema> = {
+      dataType: "error-group-info",
+      nameError: nameError,
+      descriptionError: descriptionError,
+    };
+    return ws.send(JSON.stringify(dataToSend));
   }
 
   // Update group in DB
   const updatedGroup = await prisma.chat.update({
     where: {
-      id: updatedGroupData.groupId,
+      id: data.groupId,
     },
     data: {
-      name: updatedGroupData.name,
-      description: updatedGroupData.description,
-      isPublic: updatedGroupData.isPublic,
+      name: data.name,
+      description: data.description,
+      isPublic: data.isPublic,
     },
     select: {
       name: true,
@@ -56,7 +94,7 @@ export async function handleUpdateGroup(
   });
 
   // Save base64 image to filesystem
-  if (updatedGroupData.image) {
+  if (data.image) {
     const imgPath = path.join(
       __dirname,
       "..",
@@ -67,14 +105,14 @@ export async function handleUpdateGroup(
     console.log(imgPath);
 
     console.log("got here!!");
-    const base64data = updatedGroupData.image.split(";base64,").pop();
+    const base64data = data.image.split(";base64,").pop();
     const buffer = Buffer.from(base64data as string, "base64");
     await fs.writeFile(imgPath, buffer);
   }
 
   // Send group data to group creator
   const dataToSend: z.infer<typeof baseDataSchema> = {
-    ...updatedGroupData,
+    ...data,
     dataType: "update-group",
   };
 
@@ -85,7 +123,7 @@ export async function handleUpdateGroup(
     id: updatedGroup.id,
   };
 
-  if (updatedGroupData.image) {
+  if (data.image) {
     ws.send(JSON.stringify(updateImageDataToSend));
   }
 
@@ -98,7 +136,7 @@ export async function handleUpdateGroup(
   onlineClients.forEach((ws) => {
     if (ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify(dataToSend));
-      if (updatedGroupData.image) {
+      if (data.image) {
         ws.send(JSON.stringify(updateImageDataToSend));
       }
     }

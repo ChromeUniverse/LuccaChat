@@ -15,6 +15,8 @@ import { useModalStore } from "../../zustand/modals-store";
 import { useChatsStore } from "../../zustand/chats-store";
 import { emitter } from "../../routes/App";
 import useWebSockets from "../../hooks/useWebSockets";
+import { z } from "zod";
+import { errorGroupInfoSchema } from "../../../../server/src/zod/schemas";
 
 type Props = {};
 
@@ -31,6 +33,8 @@ function CreateGroup({}: Props) {
 
   // errors
   const [imgError, setImgError] = useState("");
+  const [nameError, setNameError] = useState("");
+  const [descriptionError, setDescriptionError] = useState("");
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setName(e.target.value);
@@ -48,7 +52,6 @@ function CreateGroup({}: Props) {
       imgDataURL === ""
     )
       return;
-    // if (!imgDataURL) return setImgError("Please select an image");
     sendCreateGroup(name, description, isPublic, imgDataURL);
   }
 
@@ -77,14 +80,27 @@ function CreateGroup({}: Props) {
   }
 
   useEffect(() => {
+    const groupInfoErrorHandler = (
+      data: z.infer<typeof errorGroupInfoSchema>
+    ) => {
+      console.log("group info error handler fired!!!");
+      setNameError(data.nameError);
+      setDescriptionError(data.descriptionError);
+    };
+
     const ackGroupHandler = () => {
+      // Clear errors, close modal
+      setNameError("");
+      setDescriptionError("");
       setModalState(null);
     };
 
     emitter.on("groupCreated", ackGroupHandler);
+    emitter.on("errorGroupInfo", groupInfoErrorHandler);
 
     return () => {
       emitter.off("groupCreated", ackGroupHandler);
+      emitter.off("errorGroupInfo", groupInfoErrorHandler);
     };
   }, []);
 
@@ -147,25 +163,29 @@ function CreateGroup({}: Props) {
           {/* Name input */}
           <p className="pb-2">Name</p>
           <input
-            className="w-full py-3 mb-5 px-5 bg-slate-200 rounded-xl outline-none"
+            className="w-full py-3 px-5 bg-slate-200 rounded-xl outline-none"
             placeholder="My awesome group"
             value={name}
             onChange={handleChange}
             type="text"
           />
+          <p className="mt-3 text-sm italic text-slate-500">{nameError}</p>
 
           {/* Description input */}
-          <p className="pb-2">Description</p>
+          <p className="pb-2 mt-5">Description</p>
           <textarea
-            className="w-full py-3 mb-5 px-5 bg-slate-200 rounded-xl outline-none resize-none"
+            className="w-full py-3 px-5 bg-slate-200 rounded-xl outline-none resize-none"
             placeholder="Simply the best group chat ever created. Change my mind"
             onInput={handleInput}
             value={description}
             rows={3}
           ></textarea>
+          <p className="mt-3 text-sm italic text-slate-500">
+            {descriptionError}
+          </p>
 
           {/* Public/Private toggle */}
-          <div className="flex justify-between items-center">
+          <div className="mt-5 flex justify-between items-center">
             {/* Label */}
             <p>Make this group public</p>
 
