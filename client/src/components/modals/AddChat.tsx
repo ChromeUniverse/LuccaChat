@@ -1,6 +1,7 @@
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
+import { useChatsStore } from "../../zustand/chats-store";
 import { ModalState, useModalStore } from "../../zustand/modals-store";
 import { useBrowserStore } from "../PublicGroupBrowser";
 
@@ -20,12 +21,14 @@ function Card({
   override,
 }: CardProps) {
   // zustand actions
+  const closeChat = useChatsStore((state) => state.closeChat);
   const setModalState = useModalStore((state) => state.setModalState);
   const setOpen = useBrowserStore((state) => state.setOpen);
 
   // onClick handlers
   const setNextModal = () => setModalState(nextModal);
   const setNextPublicGroupBrowser = () => {
+    closeChat();
     setModalState(null);
     setOpen(true);
   };
@@ -84,7 +87,7 @@ function AddChat() {
         />
         <Card
           description="Start a new group chat and take over the world"
-          imgSrc="https://media.tenor.com/jyLzbD66yKwAAAAM/pcm.gif"
+          imgSrc="https://i.imgur.com/fI1srA1.gif"
           btnText="Create Group"
           nextModal="create-group"
         />
