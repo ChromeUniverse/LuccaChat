@@ -14,7 +14,6 @@ export async function isLoggedIn(
 ) {
   // Fetch JWT from cookie...
   const cookies = req.cookies as RequestCookies;
-  console.log(cookies);
   if (!cookies.token) return res.sendStatus(401);
   try {
     // ...verify JWT
@@ -22,7 +21,6 @@ export async function isLoggedIn(
       cookies.token,
       process.env.JWT_SECRET as string
     )) as UserJwtReceived;
-    console.log(decoded);
 
     // check for JWT expiry
     const expiryTime = Number(process.env.JWT_EXPIRY);

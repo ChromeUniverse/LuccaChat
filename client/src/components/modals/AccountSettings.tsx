@@ -1,13 +1,7 @@
 import React, { useEffect, useState } from "react";
-import avatar from "../../assets/avatar.jpeg";
 
 // Font Awesome
-import {
-  faAngleRight,
-  faArrowLeft,
-  faRotateRight,
-  faXmark,
-} from "@fortawesome/free-solid-svg-icons";
+import { faAngleRight, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 // Zustand
