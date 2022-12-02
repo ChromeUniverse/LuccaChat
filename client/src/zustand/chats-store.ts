@@ -3,14 +3,7 @@ import avatar from "../assets/avatar.jpeg";
 import creeper from "../assets/creeper.webp";
 import { devtools } from "zustand/middleware";
 import { nanoid } from "nanoid";
-import {
-  ChatType,
-  CurrentUserType,
-  DMType,
-  GroupType,
-  MessageType,
-  UserType,
-} from "../data";
+import { ChatType, DMType, GroupType, MessageType } from "../data";
 import {
   ChatSchemaType,
   UserSchemaType,
@@ -72,15 +65,13 @@ export const useChatsStore = create<State>()(
           (m) => m.id !== user.id
         ) as UserSchemaType;
 
-        const contact = { ...contactData, pfp_url: avatar };
-
         const newDM: DMType = {
           id: data.id,
           latest: data.latest,
           messages: [],
           inputBuffer: "",
           type: "dm",
-          contact: contact,
+          contact: contactData,
           lastImageUpdate: new Date(),
         };
 
@@ -95,6 +86,8 @@ export const useChatsStore = create<State>()(
         if (get().chats.findIndex((chat) => chat.id === data.id) !== -1) return;
         if (data.creator === null) throw new Error("Creator can't be null!");
 
+        console.log("New data", data);
+
         const newGroup: GroupType = {
           id: data.id,
           latest: data.latest,
@@ -103,14 +96,10 @@ export const useChatsStore = create<State>()(
           type: "group",
           name: data.name as string,
           description: data.description as string,
-          group_pfp_url: creeper,
           isPublic: data.isPublic as boolean,
           inviteCode: data.inviteCode as string,
-          members: data.members.map((member) => ({
-            ...member,
-            pfp_url: avatar,
-          })),
-          createdBy: { ...data.creator, pfp_url: avatar },
+          members: data.members,
+          createdBy: data.creator,
           createdAt: data.createdAt,
           lastImageUpdate: new Date(),
         };
@@ -213,11 +202,11 @@ export const useChatsStore = create<State>()(
 
       // Creates a new message and adds it to the chat with the specified ID
       addMessage: (chatId, data) => {
-        // if (get().chats.findIndex((chat) => chat.id === data.id) !== -1) return;
+        if (get().chats.findIndex((chat) => chat.id === data.id) !== -1) return;
 
         const newMsg: MessageType = {
           id: data.id,
-          sender: { ...data.author, pfp_url: avatar },
+          sender: data.author,
           content: data.content,
           createdAt: data.createdAt,
           lastImageUpdate: new Date(),
