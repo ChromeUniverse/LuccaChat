@@ -1,9 +1,9 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
-import { currentUserSchema } from "../zod/schemas";
 import { isLoggedIn } from "../middleware/login";
 import { messageSchema } from "../zod/api-messages";
+import { chatSchema, chatsSchema, userSchema } from "../zod/api-chats";
 
 // Express router config
 const api = express.Router();
@@ -34,7 +34,7 @@ api.get("/user", isLoggedIn, async (req, res) => {
 
   if (!user) return res.sendStatus(404);
 
-  const dataToSend: z.infer<typeof currentUserSchema> = {
+  const dataToSend: z.infer<typeof userSchema> = {
     id: user.id,
     name: user.name,
     handle: user.handle,
@@ -53,6 +53,8 @@ api.get("/users/:userId", async (req, res) => {
       name: true,
     },
   });
+
+  res.json(user);
 });
 
 api.get("/chats", isLoggedIn, async (req, res) => {
@@ -111,6 +113,157 @@ api.get("/chats", isLoggedIn, async (req, res) => {
   });
 
   res.json(chatsToSend);
+});
+
+api.get("/chats/:chatId", isLoggedIn, async (req, res) => {
+  const chat = await prisma.chat.findFirst({
+    where: {
+      id: req.params.chatId,
+      members: {
+        some: { id: { equals: req.currentUser.id } },
+      },
+    },
+    include: {
+      _count: true,
+      creator: {
+        select: {
+          id: true,
+          handle: true,
+          name: true,
+        },
+      },
+      members: {
+        select: {
+          id: true,
+          handle: true,
+          name: true,
+        },
+      },
+    },
+  });
+
+  // Return a 404 if chat was not foundd
+  if (!chat) return res.sendStatus(404);
+  const chatToSend: z.infer<typeof chatSchema> = chat;
+
+  res.json(chatToSend);
+});
+
+api.get("/invite/:inviteCode", async (req, res) => {
+  // fetch chat by invite code
+  const chat = await prisma.chat.findFirst({
+    where: { inviteCode: req.params.inviteCode },
+    select: {
+      name: true,
+      id: true,
+      latest: true,
+      description: true,
+      inviteCode: true,
+      createdAt: true,
+      type: true,
+      _count: true,
+      isPublic: true,
+      creatorId: true,
+      creator: {
+        select: {
+          id: true,
+          handle: true,
+          name: true,
+        },
+      },
+      members: {
+        select: {
+          id: true,
+          handle: true,
+          name: true,
+        },
+      },
+    },
+    orderBy: {
+      latest: "desc",
+    },
+  });
+
+  // No chat found? send a 404 error
+  if (!chat) return res.sendStatus(404);
+  return res.json(chat);
+});
+
+api.get("/common-groups/:otherUserId", isLoggedIn, async (req, res) => {
+  // check if other user exists in the first place
+  const otherUser = await prisma.user.findUnique({
+    where: { id: req.params.otherUserId },
+  });
+
+  if (!otherUser) return res.sendStatus(404);
+
+  const commonGroups: z.infer<typeof chatsSchema> = await prisma.chat.findMany({
+    where: {
+      type: "GROUP",
+      AND: [
+        { members: { some: { id: req.currentUser.id } } },
+        { members: { some: { id: req.params.otherUserId } } },
+      ],
+    },
+    include: {
+      _count: true,
+      creator: {
+        select: {
+          id: true,
+          handle: true,
+          name: true,
+        },
+      },
+      members: {
+        select: {
+          id: true,
+          handle: true,
+          name: true,
+        },
+      },
+    },
+    orderBy: {
+      latest: "desc",
+    },
+  });
+
+  console.log(
+    `Groups with both users ${req.currentUser.id} and ${req.params.otherUserId}`,
+    commonGroups
+  );
+
+  res.json(commonGroups);
+});
+
+api.get("/public-groups", isLoggedIn, async (req, res) => {
+  const publicGroups: z.infer<typeof chatsSchema> = await prisma.chat.findMany({
+    where: {
+      type: "GROUP",
+      isPublic: true,
+    },
+    include: {
+      _count: true,
+      creator: {
+        select: {
+          id: true,
+          handle: true,
+          name: true,
+        },
+      },
+      members: {
+        select: {
+          id: true,
+          handle: true,
+          name: true,
+        },
+      },
+    },
+    orderBy: {
+      latest: "desc",
+    },
+  });
+
+  res.json(publicGroups);
 });
 
 // NOTE: Rewrite this using cursor-based pagination (?)
