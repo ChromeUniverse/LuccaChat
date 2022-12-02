@@ -15,6 +15,8 @@ import { useInfoStore } from "../zustand/info-panel-store";
 import { useChatsStore } from "../zustand/chats-store";
 import useWebSockets from "../hooks/useWebSockets";
 import { useUserStore } from "../zustand/user-store";
+import { useDebouncedCallback } from "use-debounce";
+import { copyInviteLinkToClipboard, copyMsgContentToClipboard } from "../misc";
 
 interface MenuLineProps {
   text: string;
@@ -23,6 +25,7 @@ interface MenuLineProps {
   onClickArgs?: any[];
   onClick?: (...args: any) => any;
   setOpen?: Dispatch<SetStateAction<string | null>>;
+  clickToCopy?: boolean;
 }
 
 // A line inside the dropdown menu
@@ -33,7 +36,14 @@ function MenuLine({
   onClickArgs = [],
   onClick = () => {},
   setOpen = () => {},
+  clickToCopy = false,
 }: MenuLineProps) {
+  const [btnText, setBtnText] = useState(text);
+
+  const debouncedResetBtnText = useDebouncedCallback(() => {
+    setBtnText(text);
+  }, 1000);
+
   return (
     <div
       className={`flex w-full justify-between px-2 py-1.5 rounded-md cursor-pointer hover:bg-slate-400 hover:bg-opacity-30 ${
@@ -42,9 +52,13 @@ function MenuLine({
       onClick={() => {
         onClick(...onClickArgs);
         setOpen(null);
+        if (clickToCopy) {
+          setBtnText("Copied!");
+          debouncedResetBtnText();
+        }
       }}
     >
-      <p className={danger ? "text-red-500 font-semibold" : ""}>{text}</p>
+      <p className={danger ? "text-red-500 font-semibold" : ""}>{btnText}</p>
       <FontAwesomeIcon
         className={`w-6 text-center ${
           danger ? "text-red-500 font-semibold" : ""
@@ -64,6 +78,7 @@ interface DropdownMenuProps {
   sender: UserType;
   showInfo: (user: UserType) => void;
   deleteMessage: (chatId: string, messageId: string) => void;
+  content: string;
 }
 
 // The message's dropdown menu
@@ -75,6 +90,7 @@ function DropdownMenu({
   sender,
   showInfo,
   deleteMessage,
+  content,
 }: DropdownMenuProps) {
   const currentUser = useUserStore((state) => state.user);
 
@@ -85,7 +101,12 @@ function DropdownMenu({
         ${menuOpen ? "z-10 -top-2" : "-z-10 -top-6"}
       `}
     >
-      <MenuLine text="Copy content" icon={faClipboard} />
+      <MenuLine
+        text="Copy content"
+        icon={faClipboard}
+        clickToCopy
+        onClick={() => copyMsgContentToClipboard(content)}
+      />
       {sender.id !== currentUser.id && (
         <MenuLine
           text="Sender info"
@@ -180,6 +201,7 @@ function Message({
         sender={sender}
         showInfo={showUserInfo}
         deleteMessage={deleteMessage}
+        content={content}
       />
     </div>
   );
