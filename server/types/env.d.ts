@@ -11,6 +11,8 @@ declare global {
       JWT_EXPIRY: number;
       HTTP_PORT: number;
       WS_PORT: number;
+      VITE_REACT_APP_URL: string;
+      NODE_APP_URL: string;
     }
   }
 }

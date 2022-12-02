@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { userSchema } from "./schemas";
+
+export const userSchema = z.object({
+  id: z.string().uuid(),
+  handle: z.string(),
+  name: z.string(),
+});
 
 export const countSchema = z.object({
   messages: z.number(),

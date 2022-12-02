@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { chatSchema } from "./api-chats";
 
 // Base data (Websockets messages)
 export const baseDataSchema = z.object({
@@ -15,8 +16,12 @@ export const baseDataSchema = z.object({
     // groups
     "create-group",
     "update-group",
+    "error-group-info",
     "delete-group",
     "remove-member",
+    "add-member",
+    "join-group",
+    "join-group-ack",
     // invite codes,
     "regen-invite",
     "set-invite",
@@ -32,24 +37,6 @@ export const baseDataSchema = z.object({
 });
 
 //---------------------------------------------------------------
-
-export const currentUserSchema = z.object({
-  id: z.string().uuid(),
-  handle: z.string(),
-  name: z.string(),
-});
-
-export const userSchema = z.object({
-  id: z.string().uuid(),
-  handle: z.string(),
-  name: z.string(),
-});
-
-export const userPassportSchema = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  handle: z.string(),
-});
 
 // Update user settings
 // CLIENT -> SERVER
@@ -116,7 +103,14 @@ export const updateGroupSchema = baseDataSchema.extend({
   name: z.string(),
   description: z.string(),
   isPublic: z.boolean(),
-  image: z.string().url().optional(),
+  image: z.string().url().nullable(),
+});
+
+// Update/Create group info error
+// SERVER -> CLIENT
+export const errorGroupInfoSchema = baseDataSchema.extend({
+  nameError: z.string(),
+  descriptionError: z.string(),
 });
 
 // Delete group
@@ -145,6 +139,29 @@ export const setInviteSchema = baseDataSchema.extend({
 export const removeMemberSchema = baseDataSchema.extend({
   memberId: z.string().uuid(),
   groupId: z.string().uuid(),
+});
+
+// Add member to group
+// SERVER -> CLIENT
+export const addMemberSchema = baseDataSchema.extend({
+  groupId: z.string().uuid(),
+  memberId: z.string().uuid(),
+  name: z.string(),
+  handle: z.string(),
+});
+
+// Join group
+// CLIENT -> SERVER
+export const joinGroupSchema = baseDataSchema.extend({
+  groupId: z.string().uuid(),
+});
+
+// Join group ACK
+// SERVER -> CLIENT
+export const joinGroupAckSchema = baseDataSchema.extend({
+  groupId: z.string().uuid(),
+  error: z.boolean(),
+  msg: z.string().nullable(),
 });
 
 //---------------------------------------------------------------
