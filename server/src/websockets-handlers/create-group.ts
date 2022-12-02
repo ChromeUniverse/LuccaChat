@@ -1,7 +1,11 @@
 import { WebSocket } from "ws";
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
-import { baseDataSchema, createGroupSchema } from "../zod/schemas";
+import {
+  baseDataSchema,
+  createGroupSchema,
+  errorGroupInfoSchema,
+} from "../zod/schemas";
 import { nanoid } from "nanoid";
 import { chatSchema } from "../zod/api-chats";
 import path from "path";
@@ -15,6 +19,34 @@ export async function handleCreateGroup(
   // Extract new group data from WS message
   const { name, description, isPublic, image } =
     createGroupSchema.parse(jsonData);
+
+  let nameError = "";
+  let descriptionError = "";
+
+  // basic sanity checks
+  if (name === "") nameError = "This can't be blank";
+  if (description === "") descriptionError = "This can't be blank";
+
+  // Char limit checks
+  if (name.length > 20) {
+    nameError = "Group name can't exceed 20 characters";
+  }
+
+  if (description.length > 150) {
+    descriptionError = "Description can't exceed 150 characters";
+  }
+
+  // Check if there are any errors, send 'em down the wire
+  if (nameError !== "" || descriptionError !== "") {
+    console.log("Sending errors...");
+
+    const dataToSend: z.infer<typeof errorGroupInfoSchema> = {
+      dataType: "error-group-info",
+      nameError: nameError,
+      descriptionError: descriptionError,
+    };
+    return ws.send(JSON.stringify(dataToSend));
+  }
 
   // Create new group in DB
   const createdGroup = await prisma.chat.create({

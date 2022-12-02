@@ -16,6 +16,7 @@ import { handleUpdateUserSettings } from "./websockets-handlers/update-user-sett
 import { handleRemoveMember } from "./websockets-handlers/remove-member";
 import { asyncJWTverify } from "./misc/jwt";
 import { UserJwtReceived } from "../types/jwt";
+import { handleJoinGroup } from "./websockets-handlers/join-group";
 
 // Prisma setup
 const prisma = new PrismaClient();
@@ -110,6 +111,10 @@ wss.on("connection", async function connection(ws, req) {
 
       if (data.dataType === "remove-member") {
         handleRemoveMember(ws, userSocketMap, prisma, jsonData);
+      }
+
+      if (data.dataType === "join-group") {
+        handleJoinGroup(ws, userSocketMap, prisma, jsonData);
       }
     } catch (error) {
       console.error(error);
