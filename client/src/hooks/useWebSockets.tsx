@@ -9,9 +9,7 @@ import {
   deleteMessageSchema,
   deleteMessageSchemaType,
   sendRequestSchema,
-  ackRequestSchema,
   errorRequestSchema,
-  addRequestSchema,
   removeRequestSchema,
   removeMemberSchema,
   createGroupSchema,
@@ -23,6 +21,9 @@ import {
   updateUserSettingsSchema,
   errorUserInfoSchema,
   updateImageSchema,
+  joinGroupSchema,
+  joinGroupAckSchema,
+  errorGroupInfoSchema,
 } from "../../../server/src/zod/schemas";
 import { JsonSuperParse } from "../misc";
 import { messageSchema } from "../../../server/src/zod/api-messages";
@@ -31,6 +32,10 @@ import { useRequestsStore } from "../zustand/requests-store";
 import { chatSchema } from "../../../server/src/zod/api-chats";
 import { useInfoStore } from "../zustand/info-panel-store";
 import { useUserStore } from "../zustand/user-store";
+import { inviteEmitter } from "../routes/Invite";
+import fetchChats from "../api/fetchChats";
+import fetchMessages from "../api/fetchMessages";
+import fetchChatById from "../api/fetchChatById";
 
 let ws: WebSocket;
 let consumers = 0;
@@ -122,8 +127,11 @@ function sendUpdateGroup(
     name: name,
     description: description,
     isPublic: isPublic,
-    image: image,
+    image: image === "" ? null : image,
   };
+
+  console.log(data);
+
   ws.send(JSON.stringify(data));
   console.log("sent update group");
 }
@@ -167,12 +175,26 @@ function sendKickMember(groupId: string, memberId: string) {
   console.log("sent kick member");
 }
 
+function sendJoinGroup(groupId: string) {
+  const data: z.infer<typeof joinGroupSchema> = {
+    dataType: "join-group",
+    groupId: groupId,
+  };
+  ws.send(JSON.stringify(data));
+  console.log("sent join group");
+}
+
 export default function useWebSockets() {
   useEffect(() => {
     consumers += 1;
     console.log("Total consumers: ", consumers);
 
-    if (ws !== undefined && ws.readyState !== 3) {
+    if (
+      ws !== undefined &&
+      ws.readyState !== ws.CLOSED &&
+      ws.readyState !== ws.CLOSING
+    ) {
+      console.log(ws.readyState);
       return console.log("Socket already created...");
     }
 
@@ -186,7 +208,7 @@ export default function useWebSockets() {
     });
 
     // Listen for messages
-    ws.addEventListener("message", (event) => {
+    ws.addEventListener("message", async (event) => {
       console.log("Message from server ", event.data);
       const jsonData = JsonSuperParse(event.data);
       const data = baseDataSchema.parse(jsonData);
@@ -231,6 +253,11 @@ export default function useWebSockets() {
         emitter.emit("groupUpdated", groupId);
       }
 
+      if (data.dataType === "error-group-info") {
+        const data = errorGroupInfoSchema.parse(jsonData);
+        emitter.emit("errorGroupInfo", data);
+      }
+
       if (data.dataType === "delete-group") {
         // Parse info
         const { groupId } = deleteGroupSchema.parse(jsonData);
@@ -265,7 +292,7 @@ export default function useWebSockets() {
         const setCurrentChatId = useChatsStore.getState().setCurrentChatId;
         console.log("creating new DM...");
         createNewDM(newDmData);
-        setCurrentChatId(newDmData.id);
+        // setCurrentChatId(newDmData.id);
       }
 
       // Requests
@@ -352,6 +379,31 @@ export default function useWebSockets() {
 
         if (objectType === "group") resetGroup(id);
       }
+
+      // join group
+      if (data.dataType === "join-group-ack") {
+        // parse data, emit events
+        const ackData = joinGroupAckSchema.parse(jsonData);
+        inviteEmitter.emit("gotJoinGroupAck", ackData);
+        emitter.emit("gotJoinGroupAck", ackData);
+
+        // Add new group to zustand chats store
+        const createNewGroup = useChatsStore.getState().createNewGroup;
+        const { data: groupData } = await fetchChatById(ackData.groupId);
+        if (!groupData) return console.error("Failed to fetch new group!");
+        createNewGroup(groupData);
+
+        // fetch messages, add them to chat
+        const addMessage = useChatsStore.getState().addMessage;
+        const { data: newGroupMessages } = await fetchMessages(ackData.groupId);
+        if (!newGroupMessages) {
+          return console.error("Failed to fetch new messages!!!");
+        }
+
+        newGroupMessages.forEach((msgData) =>
+          addMessage(ackData.groupId, msgData)
+        );
+      }
     });
     return () => {
       consumers -= 1;
@@ -372,5 +424,6 @@ export default function useWebSockets() {
     sendRegenInvite,
     sendUpdateUserSettings,
     sendKickMember,
+    sendJoinGroup,
   };
 }
