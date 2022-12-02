@@ -1,6 +1,5 @@
 export interface UserType {
   id: string;
-  pfp_url: string;
   name: string;
   handle: string;
 }
@@ -25,7 +24,6 @@ export interface ChatType {
 
 export interface GroupType extends ChatType {
   type: "group";
-  group_pfp_url: string;
   inviteCode: string;
   name: string;
   isPublic: boolean;
