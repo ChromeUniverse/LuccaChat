@@ -1,6 +1,7 @@
 import React from "react";
 import creeper from "../assets/creeper.webp";
 import { useChatsStore } from "../zustand/chats-store";
+import { useBrowserStore } from "./PublicGroupBrowser";
 
 interface Props {
   name: string;
@@ -10,8 +11,11 @@ interface Props {
 }
 
 function Group({ name, members, chatId, lastImageUpdate = new Date() }: Props) {
+  // console.log(`${name} Received Members:`, members);
+
   const currentChatId = useChatsStore((state) => state.currentChatId);
   const setChatId = useChatsStore((state) => state.setCurrentChatId);
+  const setBrowserOpen = useBrowserStore((state) => state.setOpen);
 
   return (
     <div
@@ -20,7 +24,10 @@ function Group({ name, members, chatId, lastImageUpdate = new Date() }: Props) {
         ${chatId === currentChatId ? "bg-slate-200" : ""}
       `}
       onClick={() => {
-        if (chatId) setChatId(chatId);
+        if (chatId) {
+          setChatId(chatId);
+          setBrowserOpen(false);
+        }
       }}
     >
       {/* Avatar */}
@@ -39,13 +46,6 @@ function Group({ name, members, chatId, lastImageUpdate = new Date() }: Props) {
           {members.toLocaleString()} members
         </p>
       </div>
-
-      {/* Unread message count */}
-      {/* {chatId && unread !== 0 && (
-        <div className="min-w-[1.5rem] px-2 h-6 bg-slate-400 rounded-full ml-auto flex justify-center items-center text-slate-100 font-bold text-sm">
-          {unread}
-        </div>
-      )} */}
     </div>
   );
 }

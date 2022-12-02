@@ -3,6 +3,7 @@ import avatar from "../assets/avatar.jpeg";
 import { UserType } from "../data";
 import { useChatsStore } from "../zustand/chats-store";
 import { useInfoStore } from "../zustand/info-panel-store";
+import { useBrowserStore } from "./PublicGroupBrowser";
 
 interface Props {
   user: UserType;
@@ -22,6 +23,7 @@ function Contact({
   const currentChatId = useChatsStore((state) => state.currentChatId);
   const setChatId = useChatsStore((state) => state.setCurrentChatId);
   const showUserInfo = useInfoStore((state) => state.showUserInfo);
+  const setBrowserOpen = useBrowserStore((state) => state.setOpen);
 
   return (
     <div
@@ -31,7 +33,10 @@ function Contact({
         ${highlight ? "bg-sky-200 hover:bg-sky-200 hover:bg-opacity-50" : ""}
       `}
       onClick={() => {
-        if (chatId) setChatId(chatId);
+        if (chatId) {
+          setChatId(chatId);
+          setBrowserOpen(false);
+        }
         if (openInfoOnClick) showUserInfo(user);
       }}
     >
