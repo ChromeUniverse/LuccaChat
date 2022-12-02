@@ -55,6 +55,13 @@ function Sidebar({}: Props) {
   // Modal controls
   const setModalState = useModalStore((state) => state.setModalState);
 
+  // Logout the user
+  function handleLogoutClick() {
+    console.log("Clicked!");
+
+    window.location.href = `${import.meta.env.VITE_BACKEND_URL}/auth/logout`;
+  }
+
   return (
     <section className="w-[350px] bg-slate-100 flex flex-col h-screen flex-shrink-0">
       {/* Sidebar Header */}
@@ -165,7 +172,10 @@ function Sidebar({}: Props) {
             <Divider />
 
             {/* Log out */}
-            <div className="flex justify-between items-center">
+            <div
+              className="flex justify-between items-center"
+              onClick={handleLogoutClick}
+            >
               <p className="font-semibold text-xl">Log out</p>
               <FontAwesomeIcon
                 className="cursor-pointer"
@@ -230,6 +240,13 @@ function Sidebar({}: Props) {
             {/* Chats container */}
             <div className="flex flex-col mt-3 mb-3 gap-1 overflow-y-auto">
               {sortedChats.map((chat) => {
+                // if (chat.type == "group") {
+                //   console.log(
+                //     `In sidebar, group ${chat.name} has members`,
+                //     chat.members
+                //   );
+                // }
+
                 return chat.type === "dm" ? (
                   <Contact
                     key={chat.id}

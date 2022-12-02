@@ -5,11 +5,11 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Strategy as GitHubStrategy } from "passport-github";
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
-import { userSchema } from "../zod/schemas";
 import jwt from "jsonwebtoken";
 import { asyncJWTsign } from "../misc/jwt";
 import { UserJwtToSend } from "../../types/jwt";
 import { downloadPFP } from "../misc";
+import { userSchema } from "../zod/api-chats";
 
 // Prisma setup
 const prisma = new PrismaClient();
@@ -30,12 +30,13 @@ auth.use(passport.initialize());
 auth.use(passport.session());
 
 // Google passport strategy
+
 passport.use(
   new GoogleStrategy(
     {
       clientID: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-      callbackURL: "http://localhost:8080/auth/google/callback",
+      callbackURL: `${process.env.NODE_APP_URL}/auth/google/callback`,
       passReqToCallback: true,
     },
     async function (request, accessToken, refreshToken, profile, done) {
@@ -74,7 +75,7 @@ passport.use(
     {
       clientID: process.env.GITHUB_CLIENT_ID as string,
       clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
-      callbackURL: "http://localhost:8080/auth/github/callback",
+      callbackURL: `${process.env.NODE_APP_URL}/auth/github/callback`,
       passReqToCallback: true,
     },
     async function (request, accessToken, refreshToken, profile, done) {
@@ -136,7 +137,7 @@ async function sendAuthJWT(req: express.Request, res: express.Response) {
   const token = await asyncJWTsign(payload, process.env.JWT_SECRET as string);
 
   res.cookie("token", token, { httpOnly: true });
-  res.redirect("http://localhost:5173/app");
+  res.redirect(`${process.env.VITE_REACT_APP_URL}/app`);
 }
 
 // Google auth routes
@@ -165,5 +166,11 @@ auth.get(
   }),
   sendAuthJWT
 );
+
+// Logout route
+auth.get("/logout", (req, res) => {
+  res.clearCookie("token");
+  res.redirect(`${process.env.VITE_REACT_APP_URL}`);
+});
 
 export default auth;
