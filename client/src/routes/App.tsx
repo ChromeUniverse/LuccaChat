@@ -30,7 +30,9 @@ import fetchCurrentUser from "../api/fetchCurrentUser";
 
 import { z } from "zod";
 import {
+  errorGroupInfoSchema,
   errorUserInfoSchema,
+  joinGroupAckSchema,
   removeMemberSchema,
 } from "../../../server/src/zod/schemas";
 import axios, { AxiosError } from "axios";
@@ -47,6 +49,8 @@ type Events = {
   userUpdated: string;
   userUpdateError: z.infer<typeof errorUserInfoSchema>;
   memberKicked: z.infer<typeof removeMemberSchema>;
+  errorGroupInfo: z.infer<typeof errorGroupInfoSchema>;
+  gotJoinGroupAck: z.infer<typeof joinGroupAckSchema>;
 };
 
 export const emitter = mitt<Events>();
@@ -68,17 +72,13 @@ function App() {
       const userInfoInit = useUserStore.getState().userInfoInit;
 
       // Initialize user profile
-      let currentUser = { name: "", id: "", handle: "" };
-      try {
-        currentUser = await fetchCurrentUser();
-      } catch (error) {
-        const status = (error as AxiosError).response?.status;
-        if (status !== 200) window.location.replace("/");
-      }
-      userInfoInit(currentUser.id, currentUser.name, currentUser.handle);
+      const { id, name, handle } = await fetchCurrentUser();
+      if (!id) return window.location.replace("/");
+      userInfoInit(id, name, handle);
 
       // Fetching chats
-      const chats = await fetchChats();
+      const { data: chats } = await fetchChats();
+      if (!chats) return console.error("Failed to fetch chats");
       chats.forEach(async (chatData) => {
         // Creating a new chat
         chatData.type === "DM"
@@ -86,12 +86,18 @@ function App() {
           : createNewGroup(chatData);
 
         // Fetching this chat's messages
-        const messages = await fetchMessages(chatData.id);
+        const { data: messages } = await fetchMessages(chatData.id);
+        if (!messages) {
+          return console.error(
+            `Failed to fetch messages for chat ${chatData.id}`
+          );
+        }
         messages.forEach((msgData) => addMessage(chatData.id, msgData));
       });
 
       // Fetching requests
-      const requests = await fetchRequests();
+      const { data: requests } = await fetchRequests();
+      if (!requests) return console.error("Failed to fetch requests");
       requests.forEach((reqData) => addRequest(reqData));
     }
     chatsInit();
