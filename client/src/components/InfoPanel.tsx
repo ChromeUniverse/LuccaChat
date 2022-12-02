@@ -1,8 +1,4 @@
-import React, { useContext, useEffect } from "react";
-
-// Dummy pictures
-import avatar from "../assets/avatar.jpeg";
-import creeper from "../assets/creeper.webp";
+import React, { useEffect, useState } from "react";
 
 // Components
 import Group from "./Group";
@@ -25,6 +21,8 @@ import { removeMemberSchema } from "../../../server/src/zod/schemas";
 import { emitter } from "../routes/App";
 import { z } from "zod";
 import { useModalStore } from "../zustand/modals-store";
+import { chatSchema } from "../../../server/src/zod/api-chats";
+import fetchCommonGroups from "../api/fetchCommonGroups";
 
 interface FooterMenuLineProps {
   text: string;
@@ -64,14 +62,21 @@ function InfoPanel({ type, user, group }: Props) {
   const userData = user as UserType;
   const groupData = group as GroupType;
 
-  if (type === "user" && !user)
+  // Basic sanity checks
+  if (type === "user" && !user) {
     throw new Error(
       `Info panel is of type "user" but received no user object!`
     );
-  if (type === "group" && !group)
+  }
+  if (type === "group" && !group) {
     throw new Error(
       `Info panel is of type "group" but received no group object!`
     );
+  }
+
+  // Common groups
+  type chatType = z.infer<typeof chatSchema>;
+  const [groups, setGroups] = useState<chatType[]>([]);
 
   // Closes the info panel
   const closeInfo = useInfoStore((state) => state.closeInfo);
@@ -89,6 +94,22 @@ function InfoPanel({ type, user, group }: Props) {
     );
   }
 
+  // fetch common chats
+  useEffect(() => {
+    async function fetchData() {
+      if (type !== "user") return;
+
+      // Fetch common groups
+      const { data, status } = await fetchCommonGroups(userData.id);
+      if (!data) return console.log("Failed to fetch common chats");
+
+      setGroups(data);
+      console.log("got here!!!", data);
+    }
+    fetchData();
+  }, []);
+
+  // Event handler
   useEffect(() => {
     const memberKickedHandler = (data: z.infer<typeof removeMemberSchema>) => {
       // ignore if event's group ID doesn't match current Group ID
@@ -124,7 +145,7 @@ function InfoPanel({ type, user, group }: Props) {
           <>
             {/* Group Avatar */}
             <img
-              className="w-60 h-60 rounded-full object-cover"
+              className="w-60 h-60 rounded-full object-cover shrink-0"
               src={`${import.meta.env.VITE_BACKEND_URL}/avatars/${
                 groupData.id
               }.jpeg?${groupData.lastImageUpdate.getTime()}`}
@@ -183,7 +204,7 @@ function InfoPanel({ type, user, group }: Props) {
           <>
             {/* User Avatar */}
             <img
-              className="w-60 h-60 rounded-full object-cover"
+              className="w-60 h-60 rounded-full object-cover shrink-0"
               src={`${import.meta.env.VITE_BACKEND_URL}/avatars/${
                 userData.id
               }.jpeg?${Date.now()}`}
@@ -198,9 +219,19 @@ function InfoPanel({ type, user, group }: Props) {
             {/* Groups in common */}
             <div className="px-4 w-full flex flex-col mt-2">
               <p className="font-semibold py-2">Groups in common</p>
-              <Group name="Awesome Group 1" members={1162} />
-              <Group name="Awesome Group 1" members={99} />
-              <Group name="Awesome Group 1" members={99} />
+              {groups.map((g) => {
+                const getChatById = useChatsStore.getState().getChatById;
+                const { lastImageUpdate } = getChatById(g.id) as GroupType;
+                return (
+                  <Group
+                    key={g.id}
+                    chatId={g.id}
+                    name={g.name as string}
+                    members={g._count.members}
+                    lastImageUpdate={lastImageUpdate}
+                  />
+                );
+              })}
             </div>
 
             {/* Footer menu */}
