@@ -1,14 +1,4 @@
-import React, {
-  createRef,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-
-// Test photo
-import creeper from "../assets/creeper.webp";
-import avatar from "../assets/avatar.jpeg";
+import React, { useEffect, useRef, useState } from "react";
 
 // Components
 import Message from "./Message";
@@ -26,21 +16,30 @@ import {
   faVolumeXmark,
   IconDefinition,
 } from "@fortawesome/free-solid-svg-icons";
+import { faClipboard } from "@fortawesome/free-regular-svg-icons";
+
+// Event emitter
+import { emitter } from "../routes/App";
 
 // Zustand store
 import { useInfoStore } from "../zustand/info-panel-store";
 import { useChatsStore } from "../zustand/chats-store";
-import { ChatType, DMType, GroupType, UserType } from "../data";
-import { emitter } from "../routes/App";
 import { useModalStore } from "../zustand/modals-store";
-import { faClipboard } from "@fortawesome/free-regular-svg-icons";
-import useWebSockets from "../hooks/useWebSockets";
 import { useUserStore } from "../zustand/user-store";
+
+// Hooks
+import useWebSockets from "../hooks/useWebSockets";
+import { useDebouncedCallback } from "use-debounce";
+
+// typescript type defs
+import { DMType, GroupType, UserType } from "../data";
+import { copyInviteLinkToClipboard } from "../misc";
 
 type MenuLineProps = {
   text: string;
   icon: IconDefinition;
   danger?: boolean;
+  clickToCopy?: boolean;
   onClickArgs?: any;
   onClick?: (input: any) => any;
   setOptionsOpen?: (value: boolean) => void;
@@ -51,21 +50,33 @@ function MenuLine({
   text,
   icon,
   danger = false,
+  clickToCopy = false,
   onClickArgs,
   onClick = () => {},
   setOptionsOpen = () => {},
 }: MenuLineProps) {
+  const [btnText, setBtnText] = useState(text);
+
+  const debouncedResetBtnText = useDebouncedCallback(() => {
+    setBtnText(text);
+  }, 1000);
+
   return (
     <div
       className={`flex w-full justify-between px-2 py-1.5 rounded-md cursor-pointer hover:bg-slate-400 hover:bg-opacity-30 ${
         danger ? "mt-2" : ""
       }`}
       onClick={() => {
+        console.log("Clicked!");
         onClick(onClickArgs);
         setOptionsOpen(false);
+        if (clickToCopy) {
+          setBtnText("Copied!");
+          debouncedResetBtnText();
+        }
       }}
     >
-      <p className={danger ? "text-red-500 font-semibold" : ""}>{text}</p>
+      <p className={danger ? "text-red-500 font-semibold" : ""}>{btnText}</p>
       <FontAwesomeIcon
         className={`w-6 text-center ${
           danger ? "text-red-500 font-semibold" : ""
@@ -121,8 +132,13 @@ function DropdownMenu({
               onClickArgs={"group-settings"}
             />
           )}
-          <MenuLine text="Copy invite link" icon={faClipboard} />
-          <MenuLine text="Mute group" icon={faVolumeXmark} />
+          <MenuLine
+            text="Copy invite link"
+            icon={faClipboard}
+            clickToCopy
+            onClick={() => copyInviteLinkToClipboard(chat)}
+          />
+          {/* <MenuLine text="Mute group" icon={faVolumeXmark} /> */}
           {chat.createdBy.id === currentUser.id ? (
             <MenuLine
               text="Delete group"
@@ -153,7 +169,7 @@ function DropdownMenu({
             onClickArgs={infoData}
             setOptionsOpen={setOptionsOpen}
           />
-          <MenuLine text="Mute group" icon={faVolumeXmark} />
+          {/* <MenuLine text="Mute group" icon={faVolumeXmark} /> */}
         </>
       )}
     </div>
