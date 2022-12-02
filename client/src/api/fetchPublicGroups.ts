@@ -1,24 +1,20 @@
 import axios, { AxiosError } from "axios";
-import {
-  messageSchema,
-  messagesSchema,
-  messagesSchemaPrimitive,
-} from "../../../server/src/zod/api-messages";
+import { chatsSchema } from "../../../server/src/zod/api-chats";
 import { JsonSuperParse } from "../misc";
 
-export default async function fetchMessages(chatId: string) {
+export default async function fetchPublicGroups() {
   try {
-    // GET request
-    const url = `${
-      import.meta.env.VITE_BACKEND_URL
-    }/api/chats/${chatId}/messages`;
+    // format url
+    const url = `${import.meta.env.VITE_BACKEND_URL}/api/public-groups/`;
 
+    // GET request
     const { data, status } = await axios.get(url, {
       withCredentials: true,
       transformResponse: (res) => JsonSuperParse(res),
     });
 
-    return { data: messagesSchema.parse(data), status };
+    // validate with Zod
+    return { data: chatsSchema.parse(data), status };
   } catch (err) {
     const error = err as AxiosError;
     console.error(err);
