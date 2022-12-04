@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { MessageType } from "../data";
+import { colorType, MessageType } from "../data";
 import { useChatsStore } from "../zustand/chats-store";
 import { z } from "zod";
 import { emitter } from "../routes/App";
@@ -36,6 +36,7 @@ import { inviteEmitter } from "../routes/Invite";
 import fetchChats from "../api/fetchChats";
 import fetchMessages from "../api/fetchMessages";
 import fetchChatById from "../api/fetchChatById";
+import { usePreferenceStore } from "../zustand/userPreferences";
 
 let ws: WebSocket;
 let consumers = 0;
@@ -154,12 +155,18 @@ function sendRegenInvite(groupId: string) {
   console.log("sent invite regen");
 }
 
-function sendUpdateUserSettings(name: string, handle: string, image: string) {
+function sendUpdateUserSettings(
+  name: string,
+  handle: string,
+  image: string,
+  accentColor: colorType
+) {
   const data: z.infer<typeof updateUserSettingsSchema> = {
     dataType: "update-user-settings",
     name: name,
     handle: handle,
     image: image,
+    accentColor: accentColor,
   };
   ws.send(JSON.stringify(data));
   console.log("sent update user settings");
@@ -319,24 +326,28 @@ export default function useWebSockets() {
 
       // Update/Set User information
       if (data.dataType === "set-user-info") {
-        const { userId, name, handle } = setUserInfoSchema.parse(jsonData);
+        const data = setUserInfoSchema.parse(jsonData);
+        const { userId, name, handle, accentColor } = data;
 
-        // Only update info if current user ID and data user ID match
+        // Zustand store actions
         const updateInfo = useUserStore.getState().updateInfo;
         const user = useUserStore.getState().user;
-        const updateUserInfoInRequests =
-          useRequestsStore.getState().updateUserInfoInRequests;
+        const updateReq = useRequestsStore.getState().updateUserInfoInRequests;
+        const setAccentColor = usePreferenceStore.getState().setAccentColor;
+
         // Only update info if current user ID and data user ID match
-        if (userId === user.id) updateInfo(name, handle);
+        if (userId === user.id) {
+          updateInfo(name, handle);
+          setAccentColor(accentColor);
+        }
         // Else, update user info in requests
         else {
-          updateUserInfoInRequests(userId, name, handle);
+          updateReq(userId, name, handle);
         }
 
         // Update this user's info in chat messages and members
-        const updateUserInfoInChats =
-          useChatsStore.getState().updateUserInfoInChats;
-        updateUserInfoInChats(userId, name, handle);
+        const updateChats = useChatsStore.getState().updateUserInfoInChats;
+        updateChats(userId, name, handle, accentColor);
 
         emitter.emit("userUpdated", userId);
       }
