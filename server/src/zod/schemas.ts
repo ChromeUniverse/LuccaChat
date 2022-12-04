@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { chatSchema } from "./api-chats";
+import { accentColorSchema } from "./user";
 
 // Base data (Websockets messages)
 export const baseDataSchema = z.object({
@@ -43,6 +43,7 @@ export const baseDataSchema = z.object({
 export const updateUserSettingsSchema = baseDataSchema.extend({
   name: z.string(),
   handle: z.string(),
+  accentColor: accentColorSchema,
   image: z.string().optional(),
 });
 
@@ -59,6 +60,7 @@ export const setUserInfoSchema = baseDataSchema.extend({
   userId: z.string().uuid(),
   name: z.string(),
   handle: z.string(),
+  accentColor: accentColorSchema,
 });
 
 //---------------------------------------------------------------

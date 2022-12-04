@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { userSchema } from "./user";
 
 // [
 //   {
@@ -15,11 +16,7 @@ import { z } from "zod";
 export const requestSchemaPrimitive = z.object({
   id: z.string().uuid(),
   createdAt: z.string(),
-  sender: z.object({
-    id: z.string().uuid(),
-    name: z.string(),
-    handle: z.string(),
-  }),
+  sender: userSchema,
 });
 
 export const requestArraySchemaPrimitive = z.array(requestSchemaPrimitive);

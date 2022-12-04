@@ -1,13 +1,10 @@
 import { z } from "zod";
+import { userSchema } from "./user";
 
 export const messageSchemaPrimitive = z.object({
   id: z.string().uuid(),
   chatId: z.string().uuid(),
-  author: z.object({
-    id: z.string().uuid(),
-    handle: z.string(),
-    name: z.string(),
-  }),
+  author: userSchema,
   content: z.string(),
   createdAt: z.string(),
 });
