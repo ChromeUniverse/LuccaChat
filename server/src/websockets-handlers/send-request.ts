@@ -1,4 +1,4 @@
-import { WebSocket } from "ws";
+import { WebSocket, WebSocketServer } from "ws";
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
 import {
@@ -41,7 +41,7 @@ export async function handleSendRequest(
   }
 
   // Avoid user from sending friend request twice
-  const foundRequest = await prisma.request.findFirst({
+  const foundRequest1 = await prisma.request.findFirst({
     where: {
       AND: [
         { receiver: { handle: { equals: handle } } },
@@ -50,7 +50,7 @@ export async function handleSendRequest(
     },
   });
 
-  if (foundRequest) {
+  if (foundRequest1) {
     console.log("Request already exists");
 
     const dataToSend: z.infer<typeof errorRequestSchema> = {
@@ -58,6 +58,50 @@ export async function handleSendRequest(
       error: "You've already sent a friend request to this user",
     };
     return ws.send(JSON.stringify(dataToSend));
+  }
+
+  // Avoid user from sending a request to someone who already sent them a request
+  const foundRequest2 = await prisma.request.findFirst({
+    where: {
+      AND: [
+        { sender: { handle: { equals: handle } } },
+        { receiver: { id: { equals: ws.userId } } },
+      ],
+    },
+  });
+
+  if (foundRequest2) {
+    console.log("Request already exists");
+
+    const dataToSend: z.infer<typeof errorRequestSchema> = {
+      dataType: "error-request",
+      error: "This user has already sent you a friend request!",
+    };
+    return ws.send(JSON.stringify(dataToSend));
+  }
+
+  // Avoid user from sending a request to one of their friends
+  const dmChats = await prisma.chat.findMany({
+    where: {
+      type: "DM",
+      members: {
+        some: { id: { equals: ws.userId } },
+      },
+    },
+    include: {
+      members: { select: { id: true } },
+    },
+  });
+
+  for (const dm of dmChats) {
+    const memberIds = dm.members.map((m) => m.id);
+    if (memberIds.includes(targetUser.id)) {
+      const dataToSend: z.infer<typeof errorRequestSchema> = {
+        dataType: "error-request",
+        error: "This user is already your friend",
+      };
+      return ws.send(JSON.stringify(dataToSend));
+    }
   }
 
   // Passed all sanity checks, create new friend request in DB
@@ -74,6 +118,7 @@ export async function handleSendRequest(
           id: true,
           handle: true,
           name: true,
+          accentColor: true,
         },
       },
       receiver: {
@@ -94,6 +139,7 @@ export async function handleSendRequest(
       id: createdRequest.sender.id,
       handle: createdRequest.sender.handle,
       name: createdRequest.sender.name,
+      accentColor: createdRequest.sender.accentColor,
     },
   };
 
