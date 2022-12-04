@@ -1,7 +1,10 @@
+export type colorType = "blue" | "pink" | "green" | "orange" | "violet";
+
 export interface UserType {
   id: string;
   name: string;
   handle: string;
+  accentColor: colorType;
 }
 
 export interface CurrentUserType extends UserType {}
