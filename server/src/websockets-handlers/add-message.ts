@@ -1,7 +1,7 @@
 import { WebSocket } from "ws";
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
-import { messageSchemaType } from "../zod/api-messages";
+import { messageSchema, messageSchemaType } from "../zod/api-messages";
 import { addMessageSchema, baseDataSchema } from "../zod/schemas";
 
 export async function handleAddMessage(
@@ -82,7 +82,7 @@ export async function handleAddMessage(
 
   console.log("Updated chat:", updatedchat.latest);
 
-  const messageToSend: messageSchemaType = {
+  const messageToSend: z.infer<typeof messageSchema> = {
     content: addedMessage.content,
     id: addedMessage.id,
     chatId: addedMessage.chat.id,
@@ -91,6 +91,7 @@ export async function handleAddMessage(
       id: addedMessage.author.id,
       handle: addedMessage.author.handle,
       name: addedMessage.author.name,
+      accentColor: addedMessage.author.accentColor,
     },
   };
 

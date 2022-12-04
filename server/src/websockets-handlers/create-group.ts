@@ -79,6 +79,7 @@ export async function handleCreateGroup(
           id: true,
           handle: true,
           name: true,
+          accentColor: true,
         },
       },
       members: {
@@ -86,6 +87,7 @@ export async function handleCreateGroup(
           id: true,
           handle: true,
           name: true,
+          accentColor: true,
         },
       },
     },

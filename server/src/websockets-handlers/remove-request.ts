@@ -68,6 +68,7 @@ export async function handleRemoveRequest(
           id: true,
           handle: true,
           name: true,
+          accentColor: true,
         },
       },
     },

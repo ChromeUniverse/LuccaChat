@@ -19,7 +19,7 @@ export async function handleUpdateUserSettings(
 ) {
   // Extract updated group data from WS message
   const updatedUserData = updateUserSettingsSchema.parse(jsonData);
-  const { name, handle } = updatedUserData;
+  const { name, handle, accentColor } = updatedUserData;
 
   let nameError = "";
   let handleError = "";
@@ -93,11 +93,13 @@ export async function handleUpdateUserSettings(
     data: {
       name: name,
       handle: handle,
+      accentColor: accentColor,
     },
     select: {
       id: true,
       name: true,
       handle: true,
+      accentColor: true,
       chats: {
         select: {
           id: true,
@@ -113,6 +115,7 @@ export async function handleUpdateUserSettings(
     userId: updatedUser.id,
     name: updatedUser.name,
     handle: updatedUser.handle,
+    accentColor: updatedUser.accentColor,
   };
 
   ws.send(JSON.stringify(dataToSend));
