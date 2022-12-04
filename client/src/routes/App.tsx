@@ -35,7 +35,7 @@ import {
   joinGroupAckSchema,
   removeMemberSchema,
 } from "../../../server/src/zod/schemas";
-import axios, { AxiosError } from "axios";
+import { usePreferenceStore } from "../zustand/userPreferences";
 
 type Events = {
   addChatMessage: any;
@@ -55,6 +55,12 @@ type Events = {
 
 export const emitter = mitt<Events>();
 
+function Divider() {
+  return (
+    <div className="h-screen w-[2px] bg-slate-100 dark:bg-slate-900 flex-shrink-0"></div>
+  );
+}
+
 function App() {
   const infoOpen = useInfoStore((state) => state.infoOpen);
   const infoData = useInfoStore((state) => state.data);
@@ -72,9 +78,13 @@ function App() {
       const userInfoInit = useUserStore.getState().userInfoInit;
 
       // Initialize user profile
-      const { id, name, handle } = await fetchCurrentUser();
-      if (!id) return window.location.replace("/");
-      userInfoInit(id, name, handle);
+      const { data: user } = await fetchCurrentUser();
+      if (!user) return window.location.replace("/");
+      userInfoInit(user.id, user.name, user.handle);
+
+      // Set accent color
+      const setAccentColor = usePreferenceStore.getState().setAccentColor;
+      setAccentColor(user.accentColor);
 
       // Fetching chats
       const { data: chats } = await fetchChats();
@@ -103,8 +113,16 @@ function App() {
     chatsInit();
   }, []);
 
+  const darkMode = usePreferenceStore((state) => state.darkMode);
+
+  console.log("Dark mode is:", darkMode);
+
   return (
-    <div className="flex w-screen h-screen relative">
+    <div
+      className={`flex w-screen h-screen relative ${
+        darkMode ? "dark text-white" : ""
+      }`}
+    >
       <ModalWrapper />
       <Sidebar />
 
@@ -117,7 +135,7 @@ function App() {
         )
       ) : (
         <>
-          <div className="h-screen w-0.5 bg-slate-100 flex-shrink-0"></div>
+          <Divider />
           <Chat />
         </>
       )}
@@ -125,7 +143,7 @@ function App() {
       {/* Display info panel */}
       {infoOpen !== null && (
         <>
-          <div className="h-screen w-0.5 bg-slate-100 flex-shrink-0"></div>
+          <Divider />
           {infoOpen === "user" && (
             <InfoPanel type={infoOpen} user={infoData as UserType} />
           )}

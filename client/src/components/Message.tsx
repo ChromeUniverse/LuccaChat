@@ -17,6 +17,7 @@ import useWebSockets from "../hooks/useWebSockets";
 import { useUserStore } from "../zustand/user-store";
 import { useDebouncedCallback } from "use-debounce";
 import { copyInviteLinkToClipboard, copyMsgContentToClipboard } from "../misc";
+import { usePreferenceStore } from "../zustand/userPreferences";
 
 interface MenuLineProps {
   text: string;
@@ -97,7 +98,7 @@ function DropdownMenu({
   return (
     <div
       className={`
-        absolute -top-2 right-14 px-2 py-2 w-52 bg-slate-300 rounded-md flex flex-col gap-1 transition-all select-none
+        absolute -top-2 right-14 px-2 py-2 w-52 bg-slate-300 dark:bg-slate-700 dark:text-slate-300 rounded-md flex flex-col gap-1 transition-all select-none
         ${menuOpen ? "z-10 -top-2" : "-z-10 -top-6"}
       `}
     >
@@ -150,14 +151,19 @@ function Message({
   handleClick,
   lastImageUpdate,
 }: Props) {
+  const accentColor = usePreferenceStore((state) => state.accentColor);
   const showUserInfo = useInfoStore((state) => state.showUserInfo);
   const { deleteMessage } = useWebSockets();
 
   return (
     <div
       className={`
-      group relative pl-6 pr-10 grid grid-cols-[3rem_auto] items-start gap-3 py-4 hover:bg-slate-300 rounded-lg hover:bg-opacity-40
-      ${open ? "bg-slate-300 bg-opacity-40" : ""}
+      group relative pl-6 pr-10 grid grid-cols-[3rem_auto] items-start gap-3 py-4 hover:bg-slate-300 dark:hover:bg-slate-700 rounded-lg hover:bg-opacity-40 dark:hover:bg-opacity-40
+      ${
+        open
+          ? "bg-slate-300 bg-opacity-40 dark:bg-slate-700 dark:bg-opacity-40"
+          : ""
+      }
     `}
     >
       {/* User Avatar */}
@@ -173,22 +179,29 @@ function Message({
 
       {/* Messsage content */}
       <div className="flex flex-col">
-        <h3 className="font-semibold text-xl text-blue-900 select-text">
+        {/* Sender display name + accent color */}
+        <h3
+          className={`font-semibold text-xl text-${sender.accentColor}-500 select-text`}
+        >
           {sender.name}
         </h3>
+        {/* Message text content */}
         <p className="select-text">{content}</p>
       </div>
 
       {/* Options menu button */}
       <div
         className={`
-          absolute -top-2 right-4 group-hover:flex w-8 h-8 rounded-lg bg-slate-300 items-center justify-center cursor-pointer hover:brightness-95
+          absolute -top-2 right-4 group-hover:flex w-8 h-8 rounded-lg bg-slate-300 dark:bg-slate-600 items-center justify-center cursor-pointer hover:brightness-95
           ${open ? "flex brightness-95" : "hidden"}
         `}
         onClick={() => handleClick(messageId)}
       >
         {/* Ellipsis icon */}
-        <FontAwesomeIcon className="text-slate-500" icon={faEllipsisH} />
+        <FontAwesomeIcon
+          className="text-slate-500 dark:text-slate-300"
+          icon={faEllipsisH}
+        />
       </div>
 
       {/* Dropdown menu */}

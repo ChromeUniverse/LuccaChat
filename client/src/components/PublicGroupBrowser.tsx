@@ -8,10 +8,9 @@ import { z } from "zod";
 import { useModalStore } from "../zustand/modals-store";
 import useWebSockets from "../hooks/useWebSockets";
 import { emitter } from "../routes/App";
-import { inviteEmitter } from "../routes/Invite";
 import { joinGroupAckSchema } from "../../../server/src/zod/schemas";
 import { useDebouncedCallback } from "use-debounce";
-import { useChatsStore } from "../zustand/chats-store";
+import { usePreferenceStore } from "../zustand/userPreferences";
 
 type chatType = z.infer<typeof chatSchema>;
 
@@ -21,7 +20,7 @@ interface State {
 }
 
 export const useBrowserStore = create<State>((set) => ({
-  open: true,
+  open: false,
   setOpen: (newOpen) => set((state) => ({ ...state, open: newOpen })),
 }));
 
@@ -41,6 +40,7 @@ function formatDate(date: Date) {
 
 function GroupCard({ group, setErrorPrompt }: GroupCardProps) {
   const { sendJoinGroup } = useWebSockets();
+  const accentColor = usePreferenceStore((state) => state.accentColor);
 
   function handleClick() {
     sendJoinGroup(group.id);
@@ -69,9 +69,9 @@ function GroupCard({ group, setErrorPrompt }: GroupCardProps) {
   }, []);
 
   return (
-    <div className="flex bg-slate-300 rounded-lg pl-6 pr-6 py-6 gap-5">
+    <div className="flex bg-slate-300 dark:bg-slate-700 rounded-lg pl-6 pr-6 py-6 gap-5">
       {/* Group photo */}
-      <div className="flex flex-col items-center justify-center gap-3">
+      <div className="flex flex-col items-center justify-center gap-4">
         <img
           className="rounded-full w-24 h-24"
           src={`${import.meta.env.VITE_BACKEND_URL}/avatars/${
@@ -82,7 +82,7 @@ function GroupCard({ group, setErrorPrompt }: GroupCardProps) {
 
         {/* Card footer / Join button */}
         <button
-          className="bg-slate-400 text-slate-100 text-lg px-4 py-0.5 font-semibold rounded-full outline-none hover:bg-opacity-50"
+          className={`bg-${accentColor}-500 hover:bg-${accentColor}-400 text-slate-100 text-lg px-5 py-0.5 font-semibold rounded-full outline-none`}
           onClick={handleClick}
         >
           Join
@@ -94,13 +94,15 @@ function GroupCard({ group, setErrorPrompt }: GroupCardProps) {
         {/* Group Name */}
         <h3 className="text-2xl font-semibold">{group.name}</h3>
         {/* Creator Information */}
-        <p className="text-sm">
+        <p className="mt-1 text-sm dark:text-slate-400">
           Created by{" "}
-          <span className="font-semibold">@{group.creator?.handle}</span> on{" "}
-          {formatDate(group.createdAt)}
+          <span className="font-semibold dark:text-slate-100">
+            @{group.creator?.handle}
+          </span>{" "}
+          on {formatDate(group.createdAt)}
         </p>
         {/* Group Description */}
-        <p className="mt-2">{group.description}</p>
+        <p className="mt-2 text-slate-200">{group.description}</p>
       </div>
     </div>
   );
@@ -143,7 +145,7 @@ function PublicGroupBrowser() {
   }, []);
 
   return (
-    <div className="bg-slate-200 w-full pt-8 px-12 flex flex-col relative">
+    <div className="bg-slate-200 dark:bg-slate-800 w-full pt-8 px-12 flex flex-col relative">
       {/* Page title */}
       <h1 className="text-2xl font-semibold">Browse public groups</h1>
 
@@ -157,7 +159,7 @@ function PublicGroupBrowser() {
       {/* Error popup */}
       {errorPrompt && (
         <div className="absolute bottom-10 left-0 w-full flex justify-center">
-          <p className="bg-slate-300 text-2xl px-8 py-3 rounded-xl text-red-500 font-semibold">
+          <p className="bg-slate-300 dark:bg-slate-700 text-xl px-10 py-3 rounded-full text-red-500 font-semibold">
             {errorPrompt}
           </p>
         </div>

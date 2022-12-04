@@ -51,7 +51,7 @@ function LeaveGroup() {
   }, []);
 
   return (
-    <div className="w-[600px] px-12 pt-8 pb-10 bg-slate-300 bg-opacity-100 z-20 rounded-xl flex flex-col items-start">
+    <div className="w-[600px] px-12 pt-8 pb-10 bg-slate-300 dark:bg-slate-700 bg-opacity-100 z-20 rounded-xl flex flex-col items-start">
       {/* Modal Header */}
       <div className="w-full flex justify-between">
         <h2 className="py-0 text-2xl font-semibold">Leave this group?</h2>
@@ -64,7 +64,7 @@ function LeaveGroup() {
       </div>
 
       {/* Modal description */}
-      <p className="font-normal pt-10 pb-4">
+      <p className="font-normal pt-10 pb-4 dark:text-slate-200">
         {currentGroup.isPublic
           ? "You can re-join this group anytime (as long as it's still public!) by clicking “Add Chat” and browsing the public groups list"
           : "You won't be able to re-join this group without a valid invite link."}
@@ -73,7 +73,7 @@ function LeaveGroup() {
       {/* Modal footer */}
       <div className="self-end mt-auto pt-6 items-center gap-6">
         <div
-          className="bg-red-500 px-6 h-14 rounded-full flex-shrink-0 cursor-pointer flex items-center justify-center hover:bg-opacity-50"
+          className="bg-red-500 px-6 h-14 rounded-full flex-shrink-0 cursor-pointer flex items-center justify-center hover:bg-red-400"
           onClick={handleClick}
         >
           <p className="font-semibold text-slate-200 text-lg mr-3">Leave</p>

@@ -29,11 +29,11 @@ function Button({ type, request }: ButtonProps) {
 
   return (
     <div
-      className="group w-10 h-10 rounded-full bg-slate-300 hover:bg-slate-400 flex items-center justify-center cursor-pointer"
+      className="group w-10 h-10 rounded-full bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600 flex items-center justify-center cursor-pointer"
       onClick={handleClick}
     >
       <FontAwesomeIcon
-        className="group-hover:text-white"
+        className="group-hover:text-white dark:text-slate-300 dark:group-hover:text-slate-200"
         icon={type === "accept" ? faCheck : faXmark}
       />
     </div>
@@ -50,7 +50,9 @@ function Request({ request }: Props) {
       {/* Avatar */}
       <img
         className="w-14 h-14 rounded-full flex-shrink-0"
-        src={request.sender.pfp_url}
+        src={`${import.meta.env.VITE_BACKEND_URL}/avatars/${
+          request.sender.id
+        }.jpeg`}
         alt=""
       />
       {/* Name */}

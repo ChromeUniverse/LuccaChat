@@ -13,7 +13,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useModalStore } from "../../zustand/modals-store";
 import { useChatsStore } from "../../zustand/chats-store";
 import { GroupType } from "../../data";
-import { useInfoStore } from "../../zustand/info-panel-store";
 import useWebSockets from "../../hooks/useWebSockets";
 import { emitter } from "../../routes/App";
 
@@ -48,7 +47,7 @@ function DeleteGroup() {
   });
 
   return (
-    <div className="w-[600px] px-12 pt-8 pb-10 bg-slate-300 bg-opacity-100 z-20 rounded-xl flex flex-col items-start">
+    <div className="w-[600px] px-12 pt-8 pb-10 bg-slate-300 dark:bg-slate-700 bg-opacity-100 z-20 rounded-xl flex flex-col items-start">
       {/* Modal Header */}
       <div className="w-full flex justify-between">
         <h2 className="py-0 text-2xl font-semibold">Delete this group?</h2>
@@ -61,7 +60,7 @@ function DeleteGroup() {
       </div>
 
       {/* Modal description */}
-      <p className="font-normal pt-10 pb-4">
+      <p className="font-normal pt-10 pb-0 dark:text-slate-200">
         Are you sure you want to delete this group? All messages will be lost
         and the entire group will be disbanded.{" "}
         <span className="italic">Oh, the horror!!</span> <br /> <br /> This
@@ -71,7 +70,7 @@ function DeleteGroup() {
       {/* Modal footer */}
       <div className="self-end mt-auto pt-6 items-center gap-6">
         <div
-          className="bg-red-500 px-6 h-14 rounded-full flex-shrink-0 cursor-pointer flex items-center justify-center hover:bg-opacity-50"
+          className="bg-red-500 px-6 h-14 rounded-full flex-shrink-0 cursor-pointer flex items-center justify-center hover:bg-red-400"
           onClick={handleClick}
         >
           <p className="font-semibold text-slate-200 text-lg mr-3">Delete</p>

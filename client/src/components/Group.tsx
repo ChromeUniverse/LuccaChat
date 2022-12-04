@@ -20,8 +20,8 @@ function Group({ name, members, chatId, lastImageUpdate = new Date() }: Props) {
   return (
     <div
       className={`
-        px-3 py-2 w-full flex items-center gap-3 hover:bg-slate-200 rounded-lg cursor-pointer
-        ${chatId === currentChatId ? "bg-slate-200" : ""}
+        px-3 py-2 w-full flex items-center gap-3 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg cursor-pointer
+        ${chatId === currentChatId ? "bg-slate-200 dark:bg-slate-800" : ""}
       `}
       onClick={() => {
         if (chatId) {
@@ -42,7 +42,7 @@ function Group({ name, members, chatId, lastImageUpdate = new Date() }: Props) {
       {/* Group Name */}
       <div className="flex flex-col">
         <h3 className="font-normal text-xl">{name}</h3>
-        <p className="font-normal text-sm">
+        <p className="font-normal text-sm dark:text-slate-400">
           {members.toLocaleString()} members
         </p>
       </div>

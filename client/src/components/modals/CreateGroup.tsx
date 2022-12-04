@@ -12,18 +12,18 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 // Zustand
 import { useModalStore } from "../../zustand/modals-store";
-import { useChatsStore } from "../../zustand/chats-store";
 import { emitter } from "../../routes/App";
 import useWebSockets from "../../hooks/useWebSockets";
 import { z } from "zod";
 import { errorGroupInfoSchema } from "../../../../server/src/zod/schemas";
+import { usePreferenceStore } from "../../zustand/userPreferences";
 
 type Props = {};
 
 function CreateGroup({}: Props) {
   const setModalState = useModalStore((state) => state.setModalState);
   const { sendCreateGroup } = useWebSockets();
-  const createNewGroup = useChatsStore((state) => state.createNewGroup);
+  const accentColor = usePreferenceStore((state) => state.accentColor);
 
   // form fields
   const [name, setName] = useState("");
@@ -105,7 +105,7 @@ function CreateGroup({}: Props) {
   }, []);
 
   return (
-    <div className="px-16 pt-6 pb-12 bg-slate-300 bg-opacity-100 z-20 rounded-xl flex flex-col">
+    <div className="px-16 pt-6 pb-12 bg-slate-300 dark:bg-slate-700 bg-opacity-100 z-20 rounded-xl flex flex-col">
       {/* Modal header */}
       <div className="flex flex-row w-full items-center">
         <FontAwesomeIcon
@@ -127,22 +127,24 @@ function CreateGroup({}: Props) {
             <img className="rounded-full w-60 h-60" src={imgDataURL} alt="" />
           ) : (
             // Placeholder
-            <div className="rounded-full w-60 h-60 bg-slate-300 border-8 border-slate-400 flex justify-center items-center">
+            <div className="rounded-full w-60 h-60 border-8 border-slate-400 dark:border-slate-800 flex justify-center items-center">
               {/* <p className="text-slate-400"></p> */}
               <FontAwesomeIcon
-                className="text-slate-400 text-7xl"
+                className="text-slate-400 dark:text-slate-800 text-7xl"
                 icon={faUsers}
               />
             </div>
           )}
 
           {/* Image error prompt */}
-          <p className="w-full text-center italic text-sm pt-4">{imgError}</p>
+          <p className="w-full text-center italic text-sm pt-4 text-slate-600 dark:text-slate-400">
+            {imgError}
+          </p>
 
           {/* Upload button */}
           <div className="mt-6">
             <label
-              className="bg-slate-400 hover:bg-opacity-50 py-3 w-60 rounded-full font-semibold text-slate-100 text-lg outline-none cursor-pointer block text-center"
+              className="bg-slate-400 dark:bg-slate-800 hover:bg-opacity-50 py-3 w-60 rounded-full font-semibold text-slate-100 text-lg outline-none cursor-pointer block text-center"
               htmlFor="pfp_upload"
             >
               Choose photo
@@ -161,9 +163,9 @@ function CreateGroup({}: Props) {
         {/* Form */}
         <div className="flex flex-col w-96">
           {/* Name input */}
-          <p className="pb-2">Name</p>
+          <p className="pb-2 font-semibold dark:text-slate-300">Name</p>
           <input
-            className="w-full py-3 px-5 bg-slate-200 rounded-xl outline-none"
+            className="w-full py-3 px-5 bg-slate-200 dark:bg-slate-800 rounded-xl outline-none"
             placeholder="My awesome group"
             value={name}
             onChange={handleChange}
@@ -172,9 +174,11 @@ function CreateGroup({}: Props) {
           <p className="mt-3 text-sm italic text-slate-500">{nameError}</p>
 
           {/* Description input */}
-          <p className="pb-2 mt-5">Description</p>
+          <p className="pb-2 mt-5 font-semibold dark:text-slate-300">
+            Description
+          </p>
           <textarea
-            className="w-full py-3 px-5 bg-slate-200 rounded-xl outline-none resize-none"
+            className="w-full py-3 px-5 bg-slate-200 dark:bg-slate-800 rounded-xl outline-none resize-none"
             placeholder="Simply the best group chat ever created. Change my mind"
             onInput={handleInput}
             value={description}
@@ -187,7 +191,9 @@ function CreateGroup({}: Props) {
           {/* Public/Private toggle */}
           <div className="mt-5 flex justify-between items-center">
             {/* Label */}
-            <p>Make this group public</p>
+            <p className="font-semibold text-md dark:text-slate-300">
+              Make this group public
+            </p>
 
             {/* Dark mode toggle */}
             <div className="flex justify-between items-center">
@@ -195,14 +201,14 @@ function CreateGroup({}: Props) {
               <div
                 className={`
                   h-8 w-16 rounded-full relative cursor-pointer transition-all
-                  ${isPublic ? "bg-sky-700" : "bg-slate-400"}
+                  ${isPublic ? `bg-${accentColor}-500` : "bg-slate-400"}
                 `}
                 onClick={() => setIsPublic((prev) => !prev)}
               >
                 {/* Slider */}
                 <div
                   className={`
-                    h-6 w-6 rounded-full bg-slate-200 absolute top-1 transition-all
+                    h-6 w-6 rounded-full bg-slate-200 dark:bg-slate-700 absolute top-1 transition-all
                     ${isPublic ? "left-9" : "left-1"}
                   `}
                 ></div>
@@ -211,7 +217,7 @@ function CreateGroup({}: Props) {
           </div>
 
           {/* Extra info */}
-          <p className="italic text-sm mt-3 text-slate-600">
+          <p className="italic text-sm mt-3 text-slate-600 dark:text-slate-400">
             New members will need an invite link to join a private group. You
             can change this at any time.
           </p>
@@ -222,14 +228,14 @@ function CreateGroup({}: Props) {
       <div className="flex w-full pt-6">
         <div
           className={`
-            bg-slate-400 w-14 h-14 rounded-full flex-shrink-0 ml-auto flex items-center justify-center
+            bg-${accentColor}-500 w-14 h-14 rounded-full flex-shrink-0 ml-auto flex items-center justify-center
             ${
               name === "" ||
               description === "" ||
               imgError !== "" ||
               imgDataURL === ""
                 ? "bg-opacity-50"
-                : "cursor-pointer hover:bg-opacity-50"
+                : `cursor-pointer hover:bg-${accentColor}-400`
             }
           `}
           onClick={handleClick}

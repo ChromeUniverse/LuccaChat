@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from "react";
 
 // Font Awesome
-import { faAngleRight, faXmark } from "@fortawesome/free-solid-svg-icons";
+import {
+  faAngleRight,
+  faCheck,
+  faXmark,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 // Zustand
@@ -12,6 +16,30 @@ import { emitter } from "../../routes/App";
 import useWebSockets from "../../hooks/useWebSockets";
 import { z } from "zod";
 import { errorUserInfoSchema } from "../../../../server/src/zod/schemas";
+import { usePreferenceStore } from "../../zustand/userPreferences";
+import { colorType } from "../../data";
+
+type ColorButtonProps = {
+  color: colorType;
+  check: boolean;
+  setColor: (color: colorType) => void;
+};
+
+export const ColorButton = ({ color, check, setColor }: ColorButtonProps) => {
+  return (
+    <div
+      className={`
+        group h-10 w-10 rounded-full cursor-pointer hover:bg-${color}-400 bg-${color}-500 flex items-center justify-center
+        ${check ? `bg-${color}-400` : ""}
+      `}
+      onClick={() => setColor(color)}
+    >
+      {check && (
+        <FontAwesomeIcon className="text-xl text-white" icon={faCheck} />
+      )}
+    </div>
+  );
+};
 
 interface FormLineProps {
   label: string;
@@ -34,12 +62,15 @@ function FormLine({
     <div className="mb-4">
       {/* Label text */}
       {/* <p className="pb-2">{label}</p> */}
-      <label className="font-semibold text-md" htmlFor={label}>
+      <label
+        className="font-semibold text-md dark:text-slate-300"
+        htmlFor={label}
+      >
         {label}
       </label>
 
       {/* Input container */}
-      <div className="mt-1 py-3 px-5 bg-slate-200 rounded-xl flex w-72 items-center">
+      <div className="mt-1 py-3 px-5 bg-slate-200 dark:bg-slate-800 rounded-xl flex w-64 items-center">
         {handle && <span className="text-slate-400 mr-1">@</span>}
         <input
           id={label}
@@ -63,12 +94,20 @@ type Props = {};
 
 function AccountSettings({}: Props) {
   const user = useUserStore((state) => state.user);
-  const defaultSrc = `http://localhost:8080/avatars/${user.id}.jpeg`;
+  const lastImageUpdate = useUserStore((state) => state.lastImageUpdate);
+  const defaultSrc = `${import.meta.env.VITE_BACKEND_URL}/avatars/${
+    user.id
+  }.jpeg?${lastImageUpdate.getTime()}`;
+
+  const accentColor = usePreferenceStore((state) => state.accentColor);
+  // const setAccentColor = usePreferenceStore((state) => state.setAccentColor);
+  const colors: colorType[] = ["blue", "pink", "green", "orange", "violet"];
 
   // form data
   const [imgDataURL, setImgDataURL] = useState("");
   const [name, setName] = useState(user.name);
   const [handle, setHandle] = useState(user.handle);
+  const [formColor, setFormColor] = useState(accentColor);
 
   // prompts
   const [imgError, setImgError] = useState("");
@@ -88,7 +127,7 @@ function AccountSettings({}: Props) {
   // form validation
   function handleUpdateClick() {
     if (imgError !== "") return;
-    sendUpdateUserSettings(name, handle, imgDataURL);
+    sendUpdateUserSettings(name, handle, imgDataURL, formColor);
   }
 
   function handleImageFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
@@ -142,7 +181,7 @@ function AccountSettings({}: Props) {
   }, []);
 
   return (
-    <div className="px-16 pt-6 pb-12 bg-slate-300 bg-opacity-100 z-30 rounded-xl flex flex-col">
+    <div className="px-16 pt-6 pb-12 bg-slate-300 dark:bg-slate-700 bg-opacity-100 z-30 rounded-xl flex flex-col">
       {/* Modal header */}
       <div className="flex flex-row w-full items-center">
         <h2 className="py-3 text-2xl font-semibold mr-auto">
@@ -170,32 +209,51 @@ function AccountSettings({}: Props) {
           <p className="w-full text-center italic text-sm pt-4">{imgError}</p>
         </div>
 
-        {/* Form */}
-        <form action="" className="mt-8">
-          <FormLine
-            label="Display name"
-            placeholder="Chatty McChatface"
-            value={name}
-            setter={setName}
-            errorPrompt={nameError}
-          />
-          <FormLine
-            label="Handle"
-            placeholder="chatty"
-            value={handle}
-            setter={setHandle}
-            errorPrompt={handleError}
-            handle
-          />
-        </form>
+        <div className="flex flex-col">
+          {/* Form */}
+          <form action="" className="mt-0">
+            <FormLine
+              label="Display name"
+              placeholder="Chatty McChatface"
+              value={name}
+              setter={setName}
+              errorPrompt={nameError}
+            />
+            <FormLine
+              label="Handle"
+              placeholder="chatty"
+              value={handle}
+              setter={setHandle}
+              errorPrompt={handleError}
+              handle
+            />
+          </form>
+          {/* Accent color selector */}
+          <div className="flex flex-col justify-between gap-3">
+            <p className="font-semibold text-md dark:text-slate-300">
+              Accent color
+            </p>
+            {/* Color selectors container */}
+            <div className="flex justify-between px-1">
+              {colors.map((color, index) => (
+                <ColorButton
+                  key={index}
+                  color={color}
+                  check={color === formColor}
+                  setColor={setFormColor}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Modal footer */}
-      <div className="flex w-full pt-6 items-center gap-6">
+      <div className="flex w-full pt-10 items-center">
         {/* Upload button */}
         <div className="">
           <label
-            className="bg-slate-400 hover:bg-opacity-50 py-3 w-60 rounded-full font-semibold text-slate-100 text-lg outline-none cursor-pointer block text-center"
+            className="bg-slate-400 dark:bg-slate-800 hover:bg-opacity-50 dark:hover:bg-opacity-50 py-3 w-60 rounded-full font-semibold text-slate-100 text-lg outline-none cursor-pointer block text-center"
             htmlFor="pfp_upload"
           >
             Choose photo
@@ -211,16 +269,16 @@ function AccountSettings({}: Props) {
         </div>
 
         {/* Update Prompt */}
-        <p className="ml-auto">{updatePrompt}</p>
+        <p className="ml-auto mr-4">{updatePrompt}</p>
 
         {/* Update Button */}
         <div
-          className="bg-slate-400 px-6 h-14 rounded-full flex-shrink-0 cursor-pointer flex items-center justify-center hover:bg-opacity-50"
+          className={`bg-${accentColor}-500 px-6 h-14 rounded-full flex-shrink-0 cursor-pointer flex items-center justify-center hover:bg-${accentColor}-400`}
           onClick={handleUpdateClick}
         >
-          <p className="font-semibold text-slate-200 text-lg mr-3">Update</p>
+          <p className="font-semibold text-slate-100 text-lg mr-3">Update</p>
           <FontAwesomeIcon
-            className="text-slate-200"
+            className="text-slate-100"
             icon={faAngleRight}
             size="lg"
           />

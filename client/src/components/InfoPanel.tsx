@@ -34,7 +34,7 @@ function FooterMenuLine({ text, icon }: FooterMenuLineProps) {
 
   return (
     <div
-      className="pl-3 py-2 flex justify-start items-center gap-3 hover:bg-slate-200 rounded-md cursor-pointer"
+      className="pl-3 py-2 flex justify-start items-center gap-3 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-md cursor-pointer"
       onClick={() => setModalState("kick-member")}
     >
       <FontAwesomeIcon className="w-6 text-red-500" icon={icon} size="lg" />
@@ -126,11 +126,11 @@ function InfoPanel({ type, user, group }: Props) {
   }, []);
 
   return (
-    <div className="w-[360px] h-screen flex-shrink-0 bg-slate-100 flex flex-col items-center">
+    <div className="w-[380px] h-screen flex-shrink-0 bg-slate-100 dark:bg-slate-900 flex flex-col items-center">
       {/* Header */}
-      <div className="flex-shrink-0 h-20 w-full bg-slate-300 flex items-center gap-4 pl-5">
+      <div className="flex-shrink-0 h-20 w-full bg-slate-300 dark:bg-slate-700 flex items-center gap-5 pl-6">
         <FontAwesomeIcon
-          className="cursor-pointer flex-shrink-0"
+          className="cursor-pointer flex-shrink-0 dark:text-slate-400"
           icon={faXmark}
           size="lg"
           onClick={closeInfo}
@@ -152,29 +152,31 @@ function InfoPanel({ type, user, group }: Props) {
               alt=""
             />
 
-            {/* Group name, number of members */}
+            {/* Group name, number of members, creation date */}
             <div className="flex flex-col gap-1 items-center">
               <p className="text-2xl font-semibold">{groupData.name}</p>
-              <p className="text-md">
+              <p className="text-md dark:text-slate-400">
                 {groupData.isPublic ? "Public" : "Private"} group
               </p>
-              <p className="text-sm text-center">
-                Created by{" "}
-                <span className="font-bold">@{groupData.createdBy.handle}</span>{" "}
+              <p className="text-sm text-center dark:text-slate-400">
+                Created by {/* underline decoration-blue-400 decoration-2 */}
+                <span className="font-bold dark:text-slate-200">
+                  @{groupData.createdBy.handle}
+                </span>{" "}
                 on {formatDate(groupData.createdAt)}
               </p>
             </div>
 
             {/* Group description */}
-            <div className="px-6 w-full pt-2">
-              <p className="font-semibold">Description</p>
-              <p>{groupData.description}</p>
+            <div className="px-6 w-full pt-2 space-y-2">
+              <p className="font-semibold dark:text-slate-400">Description</p>
+              <p className="">{groupData.description}</p>
             </div>
 
             {/* List of members */}
             <div className="px-6 mb-8 w-full flex flex-col mt-2">
               {/* Section title */}
-              <p className="font-semibold py-2">
+              <p className="font-semibold py-2 dark:text-slate-400">
                 {groupData.members.length} members
               </p>
 
@@ -213,25 +215,31 @@ function InfoPanel({ type, user, group }: Props) {
             {/* User name/handle */}
             <div className="flex flex-col gap-1 items-center">
               <p className="text-2xl font-semibold">{userData.name}</p>
-              <p className="text-md">@{userData.handle}</p>
+              <p className="text-md dark:text-slate-400">@{userData.handle}</p>
             </div>
 
             {/* Groups in common */}
-            <div className="px-4 w-full flex flex-col mt-2">
-              <p className="font-semibold py-2">Groups in common</p>
-              {groups.map((g) => {
-                const getChatById = useChatsStore.getState().getChatById;
-                const { lastImageUpdate } = getChatById(g.id) as GroupType;
-                return (
-                  <Group
-                    key={g.id}
-                    chatId={g.id}
-                    name={g.name as string}
-                    members={g._count.members}
-                    lastImageUpdate={lastImageUpdate}
-                  />
-                );
-              })}
+            <div className="px-6 w-full flex flex-col mt-2 gap-1">
+              <p className="font-semibold py-2 dark:text-slate-400">
+                Groups in common
+              </p>
+              {groups.length > 0 ? (
+                groups.map((g) => {
+                  const getChatById = useChatsStore.getState().getChatById;
+                  const { lastImageUpdate } = getChatById(g.id) as GroupType;
+                  return (
+                    <Group
+                      key={g.id}
+                      chatId={g.id}
+                      name={g.name as string}
+                      members={g._count.members}
+                      lastImageUpdate={lastImageUpdate}
+                    />
+                  );
+                })
+              ) : (
+                <p>No groups in common with this user.</p>
+              )}
             </div>
 
             {/* Footer menu */}

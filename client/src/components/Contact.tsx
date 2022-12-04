@@ -3,6 +3,7 @@ import avatar from "../assets/avatar.jpeg";
 import { UserType } from "../data";
 import { useChatsStore } from "../zustand/chats-store";
 import { useInfoStore } from "../zustand/info-panel-store";
+import { usePreferenceStore } from "../zustand/userPreferences";
 import { useBrowserStore } from "./PublicGroupBrowser";
 
 interface Props {
@@ -24,13 +25,18 @@ function Contact({
   const setChatId = useChatsStore((state) => state.setCurrentChatId);
   const showUserInfo = useInfoStore((state) => state.showUserInfo);
   const setBrowserOpen = useBrowserStore((state) => state.setOpen);
+  const accentColor = usePreferenceStore((state) => state.accentColor);
 
   return (
     <div
       className={`
-        px-3 py-2 w-full flex items-center gap-3 hover:bg-slate-200 rounded-lg cursor-pointer
-        ${chatId === currentChatId ? "bg-slate-200" : ""}
-        ${highlight ? "bg-sky-200 hover:bg-sky-200 hover:bg-opacity-50" : ""}
+        px-3 py-2 w-full flex items-center gap-3 rounded-lg cursor-pointer
+        ${chatId === currentChatId ? "bg-slate-200 dark:bg-slate-800" : ""}
+        ${
+          highlight
+            ? `bg-${accentColor}-600 bg-opacity-30 hover:bg-opacity-20 dark:hover:bg-opacity-50`
+            : "hover:bg-slate-200 dark:hover:bg-slate-800"
+        }
       `}
       onClick={() => {
         if (chatId) {
@@ -52,7 +58,9 @@ function Contact({
       {/* Contact Name */}
       <div className="flex flex-col">
         <h3 className="font-normal text-xl">{user.name}</h3>
-        <p className="font-bold text-sm">@{user.handle}</p>
+        <p className="font-normal text-sm dark:text-slate-400">
+          @{user.handle}
+        </p>
       </div>
     </div>
   );

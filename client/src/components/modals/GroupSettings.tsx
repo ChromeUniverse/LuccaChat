@@ -22,10 +22,10 @@ import useWebSockets from "../../hooks/useWebSockets";
 import { copyInviteLinkToClipboard } from "../../misc";
 import { errorGroupInfoSchema } from "../../../../server/src/zod/schemas";
 import { z } from "zod";
+import { usePreferenceStore } from "../../zustand/userPreferences";
 
-type Props = {};
-
-function GroupSettings({}: Props) {
+function GroupSettings() {
+  const accentColor = usePreferenceStore((state) => state.accentColor);
   const setModalState = useModalStore((state) => state.setModalState);
   const getCurrentChat = useChatsStore((state) => state.getCurrentChat);
   const group = getCurrentChat() as GroupType;
@@ -142,7 +142,7 @@ function GroupSettings({}: Props) {
   }, []);
 
   return (
-    <div className="px-16 pt-6 pb-12 bg-slate-300 bg-opacity-100 z-20 rounded-xl flex flex-col">
+    <div className="px-16 pt-6 pb-12 bg-slate-300 dark:bg-slate-700 bg-opacity-100 z-20 rounded-xl flex flex-col">
       {/* Modal header */}
       <div className="flex flex-row w-full items-center">
         <h2 className="py-3 text-2xl font-semibold mr-auto">Group Settings</h2>
@@ -170,7 +170,7 @@ function GroupSettings({}: Props) {
           {/* Upload button */}
           <div className="mt-6">
             <label
-              className="bg-slate-400 hover:bg-opacity-50 py-3 w-60 rounded-full font-semibold text-slate-100 text-lg outline-none cursor-pointer block text-center"
+              className="bg-slate-400 dark:bg-slate-800 hover:bg-opacity-50 dark:hover:bg-opacity-50 py-3 w-60 rounded-full font-semibold text-slate-100 text-lg outline-none cursor-pointer block text-center"
               htmlFor="pfp_upload"
             >
               Choose photo
@@ -189,34 +189,40 @@ function GroupSettings({}: Props) {
         {/* Form */}
         <div className="flex flex-col w-96">
           {/* Name input */}
-          <p className="pb-2">Name</p>
+          <p className="pb-2 font-semibold dark:text-slate-300">Name</p>
           <input
-            className="w-full py-3 px-5 bg-slate-200 rounded-xl outline-none"
+            className="w-full py-3 px-5 bg-slate-200 dark:bg-slate-800 rounded-xl outline-none"
             placeholder="My awesome group"
             value={name}
             onChange={handleChange}
             type="text"
           />
-          <p className="mt-3 text-sm italic text-slate-500">{nameError}</p>
+          <p className="mt-3 text-sm italic text-slate-500 dark:text-slate-400">
+            {nameError}
+          </p>
 
           {/* Description input */}
-          <p className="pb-2 mt-5">Description</p>
+          <p className="pb-2 mt-5 font-semibold dark:text-slate-300">
+            Description
+          </p>
           <textarea
-            className="w-full py-3 px-5 bg-slate-200 rounded-xl outline-none resize-none"
+            className="w-full py-3 px-5 bg-slate-200 dark:bg-slate-800 rounded-xl outline-none resize-none"
             placeholder="Simply the best group chat ever created. Change my mind"
             onInput={handleInput}
             value={description}
-            rows={3}
+            rows={2}
           ></textarea>
           {/* Description error prompt */}
-          <p className="mt-3 text-sm italic text-slate-500">
+          <p className="mt-3 text-sm italic text-slate-500 dark:text-slate-400">
             {descriptionError}
           </p>
 
           {/* Public/Private toggle */}
           <div className="mt-5 flex justify-between items-center">
             {/* Label */}
-            <p>Make this group public</p>
+            <p className="font-semibold dark:text-slate-300">
+              Make this group public
+            </p>
 
             {/* Dark mode toggle */}
             <div className="flex justify-between items-center">
@@ -224,14 +230,14 @@ function GroupSettings({}: Props) {
               <div
                 className={`
                   h-8 w-16 rounded-full relative cursor-pointer transition-all
-                  ${isPublic ? "bg-sky-700" : "bg-slate-400"}
+                  ${isPublic ? `bg-${accentColor}-500` : "bg-slate-400"}
                 `}
                 onClick={() => setIsPublic((prev) => !prev)}
               >
                 {/* Slider */}
                 <div
                   className={`
-                    h-6 w-6 rounded-full bg-slate-200 absolute top-1 transition-all
+                    h-6 w-6 rounded-full bg-slate-200 dark:bg-slate-700 absolute top-1 transition-all
                     ${isPublic ? "left-9" : "left-1"}
                   `}
                 ></div>
@@ -239,22 +245,30 @@ function GroupSettings({}: Props) {
             </div>
           </div>
 
-          {/* Extra info (Public/Private toggle) */}
+          {/* Public/Private toggle warning */}
           {!isPublic && (
-            <p className="italic text-sm mt-3 text-slate-600 select-none">
+            <p className="italic text-sm mt-3 text-slate-600 dark:text-slate-400 select-none">
               New members need an invite link to join a private group.
             </p>
           )}
 
-          {/* Invite link */}
+          {/* Invite link container */}
           <div className="mt-6">
+            {/* Container header */}
             <div className="flex gap-4 mb-2">
-              <p className="flex-shrink-0 mr-auto">Invite Link</p>
-              {prompt && <p className="text-slate-600 select-none">{prompt}</p>}
+              {/* Label */}
+              <p className="flex-shrink-0 mr-auto font-semibold dark:text-slate-300">
+                Invite Link
+              </p>
+              {prompt && (
+                <p className="text-slate-600 dark:text-slate-400 select-none">
+                  {prompt}
+                </p>
+              )}
 
               {/* Copy invite link button */}
               <FontAwesomeIcon
-                className="text-slate-700 hover:text-slate-500 cursor-pointer"
+                className={`text-${accentColor}-500 hover:text-${accentColor}-400 cursor-pointer`}
                 size="lg"
                 icon={faClipboard}
                 onClick={() => handleInviteClick("copy")}
@@ -262,14 +276,17 @@ function GroupSettings({}: Props) {
 
               {/* Reset invite link button */}
               <FontAwesomeIcon
-                className="text-slate-700 hover:text-slate-500 cursor-pointer"
+                className={`text-${accentColor}-500 hover:text-${accentColor}-400 cursor-pointer`}
                 size="lg"
                 icon={faRotateRight}
                 onClick={() => handleInviteClick("reset")}
               />
             </div>
-            <div className="flex items-center gap-3 w-full py-3 px-0 bg-slate-200 rounded-xl outline-none select-none">
-              <p className="text-slate-600 w-full text-center mr-auto text-[13px] select-text">
+
+            {/* Content */}
+            <div className="flex items-center gap-3 w-full py-3 px-0 bg-slate-200 dark:bg-slate-800 rounded-xl outline-none select-none">
+              {/* Actual invite link is displayed here */}
+              <p className="text-slate-600 dark:text-slate-300 w-full text-center mr-auto text-[13px] select-text">
                 {`${import.meta.env.VITE_REACT_APP_URL}/invite/${
                   group.inviteCode
                 }`}
@@ -286,7 +303,7 @@ function GroupSettings({}: Props) {
 
         {/* Update Button */}
         <div
-          className="bg-slate-400 px-6 h-14 rounded-full flex-shrink-0 cursor-pointer flex items-center justify-center hover:bg-opacity-50"
+          className={`bg-${accentColor}-500 hover:bg-${accentColor}-400 px-6 h-14 rounded-full flex-shrink-0 cursor-pointer flex items-center justify-center`}
           onClick={handleUpdate}
         >
           <p className="font-semibold text-slate-200 text-lg mr-3">Update</p>

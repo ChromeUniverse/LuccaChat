@@ -12,8 +12,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useModalStore } from "../../zustand/modals-store";
 import useWebSockets from "../../hooks/useWebSockets";
 import { emitter } from "../../routes/App";
+import { usePreferenceStore } from "../../zustand/userPreferences";
 
 function AddFriend() {
+  const accentColor = usePreferenceStore((state) => state.accentColor);
   const setModalState = useModalStore((state) => state.setModalState);
   const { sendRequest } = useWebSockets();
 
@@ -55,7 +57,7 @@ function AddFriend() {
   }, []);
 
   return (
-    <div className="pl-12 pr-24 pt-8 pb-20 bg-slate-300 bg-opacity-100 z-20 rounded-xl flex items-start">
+    <div className="pl-12 pr-24 pt-8 pb-20 bg-slate-300 dark:bg-slate-700 z-20 rounded-xl flex items-start">
       {/* Back button */}
       <FontAwesomeIcon
         className="cursor-pointer py-[6px] pr-6"
@@ -81,7 +83,7 @@ function AddFriend() {
 
         <p className="pt-6 text-lg">Handle</p>
 
-        <div className="w-full pl-4 mt-2 bg-slate-200 rounded-full flex items-center">
+        <div className="w-full pl-4 mt-2 bg-slate-200 dark:bg-slate-800 rounded-full flex items-center">
           {/* "@"" handle prefix */}
           <p
             className={`-mt-[2px] mr-1.5 text-slate-400 ${
@@ -107,13 +109,17 @@ function AddFriend() {
           {/* Button */}
           <div
             className={`
-              bg-slate-400 w-14 h-14 rounded-full flex-shrink-0 ml-2 flex items-center justify-center
-              ${sent ? "cursor-default" : "cursor-pointer hover:bg-opacity-50"}
+              bg-${accentColor}-500 w-14 h-14 rounded-full flex-shrink-0 ml-2 flex items-center justify-center
+              ${
+                sent
+                  ? "cursor-default"
+                  : `cursor-pointer hover:bg-${accentColor}-400`
+              }
             `}
             onClick={handleClick}
           >
             <FontAwesomeIcon
-              className="text-slate-200"
+              className="text-white"
               icon={sent ? faCheck : faAngleRight}
               size="lg"
             />
@@ -121,7 +127,9 @@ function AddFriend() {
         </div>
 
         {/* Error prompt */}
-        <p className="mt-3 italic text-sm text-slate-600">{prompt}</p>
+        <p className="mt-3 italic text-sm text-slate-600 dark:text-slate-400">
+          {prompt}
+        </p>
       </div>
     </div>
   );

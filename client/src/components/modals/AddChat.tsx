@@ -2,6 +2,7 @@ import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
 import { useChatsStore } from "../../zustand/chats-store";
+import { useInfoStore } from "../../zustand/info-panel-store";
 import { ModalState, useModalStore } from "../../zustand/modals-store";
 import { useBrowserStore } from "../PublicGroupBrowser";
 
@@ -21,6 +22,7 @@ function Card({
   override,
 }: CardProps) {
   // zustand actions
+  const closeInfo = useInfoStore((state) => state.closeInfo);
   const closeChat = useChatsStore((state) => state.closeChat);
   const setModalState = useModalStore((state) => state.setModalState);
   const setOpen = useBrowserStore((state) => state.setOpen);
@@ -28,6 +30,7 @@ function Card({
   // onClick handlers
   const setNextModal = () => setModalState(nextModal);
   const setNextPublicGroupBrowser = () => {
+    closeInfo();
     closeChat();
     setModalState(null);
     setOpen(true);
@@ -36,7 +39,7 @@ function Card({
   return (
     <div className="flex-1 flex flex-col items-center gap-6">
       {/* Card content */}
-      <div className="bg-slate-200 w-full h-72 py-4 rounded-lg flex flex-col items-center gap-4">
+      <div className="bg-slate-200 dark:bg-slate-600 w-full h-72 py-4 rounded-lg flex flex-col items-center gap-4">
         {/* Card image */}
         <img
           className="w-36 h-36 rounded-full object-cover"
@@ -49,7 +52,7 @@ function Card({
 
       {/* Card button */}
       <button
-        className="bg-slate-400 text-slate-100 text-lg w-full py-3 rounded-full text-center font-semibold outline-none hover:bg-slate-500"
+        className="bg-slate-400 dark:bg-slate-800 text-slate-100 text-lg w-full py-3 rounded-full text-center font-semibold outline-none hover:bg-slate-500 dark:hover:bg-opacity-50"
         onClick={() =>
           override ? setNextPublicGroupBrowser() : setNextModal()
         }
@@ -64,7 +67,7 @@ function AddChat() {
   const setModalState = useModalStore((state) => state.setModalState);
 
   return (
-    <div className="h-[550px] w-[900px] px-16 pt-6 pb-20 bg-slate-300 bg-opacity-100 z-20 rounded-xl flex flex-col justify-between">
+    <div className="h-[550px] w-[900px] px-16 pt-6 pb-20 bg-slate-300 dark:bg-slate-700 bg-opacity-100 z-20 rounded-xl flex flex-col justify-between">
       {/* Modal header */}
 
       <div className="flex flex-row w-full items-center justify-between">
