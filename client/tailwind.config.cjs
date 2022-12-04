@@ -1,21 +1,19 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  darkMode: "class",
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
       fontFamily: {
-        'sans': "Inter"
-      }
+        sans: "Inter",
+      },
     },
     fontWeight: {
       light: 100,
       normal: 400,
       semibold: 600,
-      bold: 700
-    }
+      bold: 700,
+    },
   },
   plugins: [],
-}
+};
