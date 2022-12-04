@@ -3,7 +3,8 @@ import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
 import { isLoggedIn } from "../middleware/login";
 import { messageSchema } from "../zod/api-messages";
-import { chatSchema, chatsSchema, userSchema } from "../zod/api-chats";
+import { chatSchema, chatsSchema } from "../zod/api-chats";
+import { userSchema } from "../zod/user";
 
 // Express router config
 const api = express.Router();
@@ -34,11 +35,7 @@ api.get("/user", isLoggedIn, async (req, res) => {
 
   if (!user) return res.sendStatus(404);
 
-  const dataToSend: z.infer<typeof userSchema> = {
-    id: user.id,
-    name: user.name,
-    handle: user.handle,
-  };
+  const dataToSend: z.infer<typeof userSchema> = user;
 
   res.json(dataToSend);
 });
@@ -58,7 +55,7 @@ api.get("/users/:userId", async (req, res) => {
 });
 
 api.get("/chats", isLoggedIn, async (req, res) => {
-  const chats = await prisma.chat.findMany({
+  const chats: z.infer<typeof chatsSchema> = await prisma.chat.findMany({
     where: {
       members: {
         some: { id: { equals: req.currentUser.id } },
@@ -80,6 +77,7 @@ api.get("/chats", isLoggedIn, async (req, res) => {
           id: true,
           handle: true,
           name: true,
+          accentColor: true,
         },
       },
       members: {
@@ -87,6 +85,7 @@ api.get("/chats", isLoggedIn, async (req, res) => {
           id: true,
           handle: true,
           name: true,
+          accentColor: true,
         },
       },
     },
@@ -95,24 +94,7 @@ api.get("/chats", isLoggedIn, async (req, res) => {
     },
   });
 
-  const chatsToSend = chats.map((chatData) => {
-    return {
-      name: chatData.name,
-      id: chatData.id,
-      latest: chatData.latest,
-      description: chatData.description,
-      inviteCode: chatData.inviteCode,
-      createdAt: chatData.createdAt,
-      type: chatData.type,
-      _count: chatData._count,
-      isPublic: chatData.isPublic,
-      creatorId: chatData.creatorId,
-      creator: chatData.creator,
-      members: chatData.members,
-    };
-  });
-
-  res.json(chatsToSend);
+  res.json(chats);
 });
 
 api.get("/chats/:chatId", isLoggedIn, async (req, res) => {
@@ -130,6 +112,7 @@ api.get("/chats/:chatId", isLoggedIn, async (req, res) => {
           id: true,
           handle: true,
           name: true,
+          accentColor: true,
         },
       },
       members: {
@@ -137,6 +120,7 @@ api.get("/chats/:chatId", isLoggedIn, async (req, res) => {
           id: true,
           handle: true,
           name: true,
+          accentColor: true,
         },
       },
     },
@@ -212,6 +196,7 @@ api.get("/common-groups/:otherUserId", isLoggedIn, async (req, res) => {
           id: true,
           handle: true,
           name: true,
+          accentColor: true,
         },
       },
       members: {
@@ -219,6 +204,7 @@ api.get("/common-groups/:otherUserId", isLoggedIn, async (req, res) => {
           id: true,
           handle: true,
           name: true,
+          accentColor: true,
         },
       },
     },
@@ -248,6 +234,7 @@ api.get("/public-groups", isLoggedIn, async (req, res) => {
           id: true,
           handle: true,
           name: true,
+          accentColor: true,
         },
       },
       members: {
@@ -255,6 +242,7 @@ api.get("/public-groups", isLoggedIn, async (req, res) => {
           id: true,
           handle: true,
           name: true,
+          accentColor: true,
         },
       },
     },
@@ -283,6 +271,7 @@ api.get("/chats/:chatId/messages", async (req, res) => {
           id: true,
           handle: true,
           name: true,
+          accentColor: true,
         },
       },
       content: true,
@@ -309,6 +298,7 @@ api.get("/requests", isLoggedIn, async (req, res) => {
           id: true,
           name: true,
           handle: true,
+          accentColor: true,
         },
       },
     },

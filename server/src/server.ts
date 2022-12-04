@@ -12,7 +12,12 @@ import auth from "./routers/auth";
 // Express config
 const app = express();
 app.use(cookieParser());
-app.use(cors({ origin: ["http://localhost:5173"], credentials: true }));
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "http://localhost:4173"],
+    credentials: true,
+  })
+);
 
 // Mount routers
 app.use("/api", api);

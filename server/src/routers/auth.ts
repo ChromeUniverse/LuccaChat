@@ -9,7 +9,7 @@ import jwt from "jsonwebtoken";
 import { asyncJWTsign } from "../misc/jwt";
 import { UserJwtToSend } from "../../types/jwt";
 import { downloadPFP } from "../misc";
-import { userSchema } from "../zod/api-chats";
+import { userSchema } from "../zod/user";
 
 // Prisma setup
 const prisma = new PrismaClient();
