@@ -11,17 +11,26 @@ datasource db {
 }
 
 model User {
-  id               String       @id @unique @default(uuid())
-  createdAt        DateTime     @default(now())
+  id               String          @id @unique @default(uuid())
+  createdAt        DateTime        @default(now())
   name             String
-  handle           String       @unique
+  handle           String          @unique
+  accentColor      AccentColorType @default(blue)
   authProvider     ProviderType
   authProviderId   String
   messages         Message[]
-  chats            Chat[]       @relation("member")
-  createdGroups    Chat[]       @relation("creator")
-  inboundRequests  Request[]    @relation("inbound")
-  outboundRequests Request[]    @relation("outbound")
+  chats            Chat[]          @relation("member")
+  createdGroups    Chat[]          @relation("creator")
+  inboundRequests  Request[]       @relation("inbound")
+  outboundRequests Request[]       @relation("outbound")
+}
+
+enum AccentColorType {
+  blue
+  pink
+  green
+  orange
+  violet
 }
 
 enum ProviderType {
