@@ -19,7 +19,7 @@ export const useUserStore = create<State>()(
         id: "",
         name: "",
         handle: "",
-        pfp_url: avatar,
+        accentColor: "blue",
       },
 
       lastImageUpdate: new Date(),

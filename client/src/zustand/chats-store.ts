@@ -3,7 +3,7 @@ import avatar from "../assets/avatar.jpeg";
 import creeper from "../assets/creeper.webp";
 import { devtools } from "zustand/middleware";
 import { nanoid } from "nanoid";
-import { ChatType, DMType, GroupType, MessageType } from "../data";
+import { ChatType, colorType, DMType, GroupType, MessageType } from "../data";
 import {
   ChatSchemaType,
   UserSchemaType,
@@ -34,7 +34,12 @@ interface State {
   deleteMessage: (chatId: string, messageId: string) => void;
   updateLatest: (chatId: string, newLatest: Date) => void;
   chatHasUser: (chatId: string, userId: string) => boolean;
-  updateUserInfoInChats: (userId: string, handle: string, name: string) => void;
+  updateUserInfoInChats: (
+    userId: string,
+    handle: string,
+    name: string,
+    accentColor: colorType
+  ) => void;
   resetLastUserImageUpdate: (userId: string) => void;
   resetLastGroupImageUpdate: (groupId: string) => void;
   removeMemberFromGroup: (groupId: string, memberId: string) => void;
@@ -280,7 +285,7 @@ export const useChatsStore = create<State>()(
         return false;
       },
 
-      updateUserInfoInChats: (userId, name, handle) => {
+      updateUserInfoInChats: (userId, name, handle, accentColor) => {
         const chatHasUser = get().chatHasUser;
         const newChats = get().chats.map((chat) => {
           const hasUser = chatHasUser(chat.id, userId);
@@ -302,6 +307,7 @@ export const useChatsStore = create<State>()(
                         ...message.sender,
                         handle: handle,
                         name: name,
+                        accentColor: accentColor,
                       }
                     : message.sender,
               })),

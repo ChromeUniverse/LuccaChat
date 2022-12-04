@@ -28,7 +28,7 @@ export const useRequestsStore = create<State>()(
         const newReq: RequestType = {
           id: data.id,
           sentAt: data.createdAt,
-          sender: { ...data.sender, pfp_url: avatar },
+          sender: data.sender,
           lastImageUpdate: new Date(),
         };
 
