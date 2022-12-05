@@ -17,20 +17,20 @@ interface State {
 
 export const usePreferenceStore = create<State>()(
   devtools(
-    // persist(
-    (set, get) => ({
-      darkMode: true,
-      accentColor: "blue",
-      toggleDarkMode: () => {
-        set((state) => ({ ...state, darkMode: !get().darkMode }));
-      },
-      setAccentColor: (newColor) => {
-        set((state) => ({ ...state, accentColor: newColor }));
-      },
-    }),
-    {
-      name: "user-preference-store",
-    }
-    // )
+    persist(
+      (set, get) => ({
+        darkMode: true,
+        accentColor: "blue",
+        toggleDarkMode: () => {
+          set((state) => ({ ...state, darkMode: !get().darkMode }));
+        },
+        setAccentColor: (newColor) => {
+          set((state) => ({ ...state, accentColor: newColor }));
+        },
+      }),
+      {
+        name: "user-preference-store",
+      }
+    )
   )
 );
