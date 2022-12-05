@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 
 // Components
 import Contact from "./Contact";
@@ -49,9 +49,6 @@ function Sidebar({}: Props) {
 
   // Fetch chats, sort by latest first
   const chats = useChatsStore((state) => state.chats);
-  const sortedChats = chats.sort(
-    (c1, c2) => c2.latest.getTime() - c1.latest.getTime()
-  );
 
   // Fetch requests
   const requests = useRequestsStore((state) => state.requests);
@@ -61,6 +58,31 @@ function Sidebar({}: Props) {
 
   // Modal controls
   const setModalState = useModalStore((state) => state.setModalState);
+
+  // Search bar input
+  const [searchInput, setSearchInput] = useState("");
+
+  // Using memoized derived state to filter and sort chats
+  const processedChats = useMemo(() => {
+    if (!searchInput) return chats;
+
+    return (
+      chats
+        // filter by search input string
+        .filter((chat) =>
+          chat.type === "dm"
+            ? chat.contact.handle
+                .toLowerCase()
+                .includes(searchInput.toLowerCase()) ||
+              chat.contact.name
+                .toLowerCase()
+                .includes(searchInput.toLowerCase())
+            : chat.name.toLowerCase().includes(searchInput.toLowerCase())
+        )
+        // sort by latest chats
+        .sort((c1, c2) => c2.latest.getTime() - c1.latest.getTime())
+    );
+  }, [chats, searchInput]);
 
   // Logout the user
   function handleLogoutClick() {
@@ -229,12 +251,14 @@ function Sidebar({}: Props) {
                 className="w-full py-3 bg-transparent outline-none dark:text-slate-200"
                 placeholder="Search chats"
                 type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
               />
             </div>
 
             {/* Chats container */}
             <div className="flex flex-col mt-3 mb-3 gap-1 overflow-y-auto">
-              {sortedChats.map((chat) => {
+              {processedChats.map((chat) => {
                 return chat.type === "dm" ? (
                   <Contact
                     key={chat.id}
