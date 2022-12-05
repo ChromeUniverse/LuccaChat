@@ -17,7 +17,7 @@ interface State {
   getCurrentChat: () => GroupType | DMType;
   getChatById: (chatId: string) => GroupType | DMType | null;
   createNewDM: (data: ChatSchemaType) => void;
-  createNewGroup: (data: ChatSchemaType) => void;
+  createNewGroup: (data: ChatSchemaType, overrideLatest?: boolean) => void;
   removeGroup: (chatId: string) => void;
   setCurrentChatId: (chatId: string) => void;
   closeChat: () => void;
@@ -87,7 +87,7 @@ export const useChatsStore = create<State>()(
       },
 
       // Creates a new group chat
-      createNewGroup: (data) => {
+      createNewGroup: (data, overrideLatest = false) => {
         if (get().chats.findIndex((chat) => chat.id === data.id) !== -1) return;
         if (data.creator === null) throw new Error("Creator can't be null!");
 
@@ -95,7 +95,7 @@ export const useChatsStore = create<State>()(
 
         const newGroup: GroupType = {
           id: data.id,
-          latest: data.latest,
+          latest: overrideLatest ? new Date() : data.latest,
           messages: [],
           inputBuffer: "",
           type: "group",

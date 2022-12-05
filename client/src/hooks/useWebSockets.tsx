@@ -402,7 +402,7 @@ export default function useWebSockets() {
         const createNewGroup = useChatsStore.getState().createNewGroup;
         const { data: groupData } = await fetchChatById(ackData.groupId);
         if (!groupData) return console.error("Failed to fetch new group!");
-        createNewGroup(groupData);
+        createNewGroup(groupData, true);
 
         // fetch messages, add them to chat
         const addMessage = useChatsStore.getState().addMessage;
