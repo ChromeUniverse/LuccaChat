@@ -32,3 +32,12 @@ export const copyMsgContentToClipboard = async (content: string) => {
   await navigator.clipboard.writeText(content);
   console.log("copied!");
 };
+
+// helper function
+export function formatDate(date: Date) {
+  return date.toLocaleDateString("default", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
