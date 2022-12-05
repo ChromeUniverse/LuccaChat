@@ -23,6 +23,7 @@ import { z } from "zod";
 import { useModalStore } from "../zustand/modals-store";
 import { chatSchema } from "../../../server/src/zod/api-chats";
 import fetchCommonGroups from "../api/fetchCommonGroups";
+import { formatDate } from "../misc";
 
 interface FooterMenuLineProps {
   text: string;
@@ -41,15 +42,6 @@ function FooterMenuLine({ text, icon }: FooterMenuLineProps) {
       <p className="font-semibold text-red-500 text-lg">{text}</p>
     </div>
   );
-}
-
-// helper function
-function formatDate(date: Date) {
-  return date.toLocaleDateString("default", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
 }
 
 interface Props {
@@ -84,6 +76,8 @@ function InfoPanel({ type, user, group }: Props) {
   // get current chat data
   const getCurrentChat = useChatsStore((state) => state.getCurrentChat);
   const currentChat = getCurrentChat();
+  const memberIds =
+    currentChat.type === "group" ? currentChat.members.map((m) => m.id) : null;
 
   // Prevents user from accessing info panel about themselves
   const currentUser = useUserStore((state) => state.user);
@@ -248,10 +242,12 @@ function InfoPanel({ type, user, group }: Props) {
               Only shows "Kick"/"Ban" buttons if current user:
               1. is viewing a "group" chat
               2. is the creator of the group
+              3. is still a member of this group
             */}
 
             {currentChat.type === "group" &&
-              currentChat.createdBy.id === currentUser.id && (
+              currentChat.createdBy.id === currentUser.id &&
+              memberIds?.includes(userData.id) && (
                 <div className="mt-auto px-4 py-5 w-full flex flex-col gap-1">
                   <FooterMenuLine
                     text={`Kick ${userData.name}`}

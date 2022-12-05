@@ -52,7 +52,7 @@ export async function handleJoinGroup(
         groupId: groupId,
         dataType: "join-group-ack",
         error: true,
-        msg: "You're already a member of this group!",
+        msg: "You are already a member of this group!",
       };
 
       return ws.send(JSON.stringify(dataToSend));
