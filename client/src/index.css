@@ -27,3 +27,12 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+.tech-grid-1 {
+  grid-column: 1 / 6;
+}
+
+.tech-grid-2 {
+  grid-column: 6 / 9;
+  align-self: center;
+}
