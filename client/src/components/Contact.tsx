@@ -1,3 +1,5 @@
+import { faCrown } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
 import avatar from "../assets/avatar.jpeg";
 import { UserType } from "../data";
@@ -62,6 +64,13 @@ function Contact({
           @{user.handle}
         </p>
       </div>
+
+      {highlight && (
+        <FontAwesomeIcon
+          className="text-sm ml-auto text-slate-600 dark:text-slate-200"
+          icon={faCrown}
+        />
+      )}
     </div>
   );
 }
