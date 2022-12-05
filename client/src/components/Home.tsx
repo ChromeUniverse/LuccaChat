@@ -8,6 +8,40 @@ import { colorType } from "../data";
 
 type Props = {};
 
+export function Links({ accentColor }: { accentColor?: colorType }) {
+  return (
+    <div className="flex flex-row justify-center gap-3">
+      <a
+        className={`
+          hover:scale-125 transition-all 
+          ${accentColor ? `text-${accentColor}-500` : "text-white"}
+        `}
+        href="https://github.com/ChromeUniverse"
+      >
+        <FontAwesomeIcon icon={faGithub} size="xl" />
+      </a>
+      <a
+        className={`
+          hover:scale-125 transition-all 
+          ${accentColor ? `text-${accentColor}-500` : "text-white"}
+        `}
+        href="http://34.200.98.64/"
+      >
+        <FontAwesomeIcon icon={faGlobe} size="xl" />
+      </a>
+      <a
+        className={`
+          hover:scale-125 transition-all 
+          ${accentColor ? `text-${accentColor}-500` : "text-white"}
+        `}
+        href="https://www.youtube.com/c/LuccasLab"
+      >
+        <FontAwesomeIcon icon={faYoutube} size="xl" />
+      </a>
+    </div>
+  );
+}
+
 function Footer({ accentColor }: { accentColor: colorType }) {
   return (
     <footer className="flex flex-col gap-3 pt-12">
@@ -18,26 +52,7 @@ function Footer({ accentColor }: { accentColor: colorType }) {
         </span>{" "}
         🚀
       </p>
-      <div className="flex flex-row justify-center gap-3">
-        <a
-          className={`hover:scale-125 transition-all text-${accentColor}-500`}
-          href="https://github.com/ChromeUniverse"
-        >
-          <FontAwesomeIcon icon={faGithub} size="xl" />
-        </a>
-        <a
-          className={`hover:scale-125 transition-all text-${accentColor}-500`}
-          href="http://34.200.98.64/"
-        >
-          <FontAwesomeIcon icon={faGlobe} size="xl" />
-        </a>
-        <a
-          className={`hover:scale-125 transition-all text-${accentColor}-500`}
-          href="https://www.youtube.com/c/LuccasLab"
-        >
-          <FontAwesomeIcon icon={faYoutube} size="xl" />
-        </a>
-      </div>
+      <Links accentColor={accentColor} />
     </footer>
   );
 }
