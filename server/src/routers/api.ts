@@ -153,6 +153,7 @@ api.get("/invite/:inviteCode", async (req, res) => {
           id: true,
           handle: true,
           name: true,
+          accentColor: true,
         },
       },
       members: {
@@ -160,6 +161,7 @@ api.get("/invite/:inviteCode", async (req, res) => {
           id: true,
           handle: true,
           name: true,
+          accentColor: true,
         },
       },
     },
@@ -170,7 +172,8 @@ api.get("/invite/:inviteCode", async (req, res) => {
 
   // No chat found? send a 404 error
   if (!chat) return res.sendStatus(404);
-  return res.json(chat);
+  const chatToSend: z.infer<typeof chatSchema> = chat;
+  return res.json(chatToSend);
 });
 
 api.get("/common-groups/:otherUserId", isLoggedIn, async (req, res) => {
