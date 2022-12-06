@@ -5,7 +5,11 @@
   "main": "src/server.ts",
   "scripts": {
     "dev-ws": "nodemon src/wss.ts",
-    "dev-http": "nodemon src/server.ts"
+    "dev-http": "nodemon src/server.ts",
+    "prod-run-ws": "node dist/wss.js",
+    "prod-run-http": "node dist/server.js",
+    "prod-start-ws": "pm2 start dist/wss.js",
+    "prod-start-http": "pm2 start dist/server.js"
   },
   "keywords": [],
   "author": "",
