@@ -207,7 +207,8 @@ export default function useWebSockets() {
 
     console.log("Creating WS");
 
-    if (consumers === 1) ws = new WebSocket("ws://localhost:8081");
+    if (consumers === 1)
+      ws = new WebSocket(import.meta.env.VITE_WEBSOCKETS_URL);
 
     // Connection opened
     ws.addEventListener("open", (event) => {
