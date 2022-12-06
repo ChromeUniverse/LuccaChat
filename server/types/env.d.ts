@@ -12,6 +12,7 @@ declare global {
       HTTP_PORT: number;
       WS_PORT: number;
       VITE_REACT_APP_URL: string;
+      VITE_REACT_APP_URL_DEV: string;
       NODE_APP_URL: string;
     }
   }
