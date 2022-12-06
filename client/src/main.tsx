@@ -5,6 +5,7 @@ import { createBrowserRouter, RouterProvider, Route } from "react-router-dom";
 import "./index.css";
 import Home from "./routes/Home";
 import Invite from "./routes/Invite";
+import NotFound from "./routes/NotFound";
 
 const router = createBrowserRouter([
   {
@@ -18,6 +19,10 @@ const router = createBrowserRouter([
   {
     path: "/invite/:inviteCode",
     element: <Invite />,
+  },
+  {
+    path: "*",
+    element: <NotFound />,
   },
 ]);
 

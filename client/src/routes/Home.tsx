@@ -127,14 +127,6 @@ function Hero({ scroll }: HeroProps) {
           alt=""
         />
       </div>
-
-      {/* Footer */}
-      {/* <div className="absolute bottom-4 left-0 w-full flex justify-center items-center">
-        <div className="bg-slate-300 bg-opacity-80 shadow-xl flex justify-center items-center gap-3 px-6 py-2 rounded-full text-slate-900">
-          <FontAwesomeIcon className="text-l inline" icon={faAnglesDown} />
-          <p className="text-xl">Scroll for more info</p>
-        </div>
-      </div> */}
     </div>
   );
 }
@@ -228,7 +220,6 @@ function Footer() {
               Lucca Rodrigues
             </a>
           </p>
-          {/* <Links /> */}
         </div>
       </div>
     </div>
@@ -249,7 +240,6 @@ function Home() {
       <Hero scroll={scroll} />
       <Technologies />
       <CTA ctaRef={ctaRef} />
-      {/* <hr /> */}
       <Footer />
     </>
   );
