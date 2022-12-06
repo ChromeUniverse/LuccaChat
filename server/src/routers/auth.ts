@@ -3,16 +3,13 @@ import passport from "passport";
 import session from "express-session";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Strategy as GitHubStrategy } from "passport-github";
-import { PrismaClient } from "@prisma/client";
+import prisma from "../prisma";
 import { z } from "zod";
 import jwt from "jsonwebtoken";
 import { asyncJWTsign } from "../misc/jwt";
 import { UserJwtToSend } from "../../types/jwt";
 import { downloadPFP } from "../misc";
 import { userSchema } from "../zod/user";
-
-// Prisma setup
-const prisma = new PrismaClient();
 
 // Express router config
 const auth = express.Router();

@@ -1,6 +1,6 @@
 import { WebSocket, WebSocketServer } from "ws";
 import { baseDataSchema } from "./zod/schemas";
-import { PrismaClient } from "@prisma/client";
+import prisma from "./prisma";
 
 // Websocket message handlers
 import { handleAddMessage } from "./websockets-handlers/add-message";
@@ -17,9 +17,6 @@ import { handleRemoveMember } from "./websockets-handlers/remove-member";
 import { asyncJWTverify } from "./misc/jwt";
 import { UserJwtReceived } from "../types/jwt";
 import { handleJoinGroup } from "./websockets-handlers/join-group";
-
-// Prisma setup
-const prisma = new PrismaClient();
 
 // Websockets server setup
 const wss = new WebSocketServer({ port: Number(process.env.WS_PORT) });

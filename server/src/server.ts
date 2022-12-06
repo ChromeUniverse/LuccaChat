@@ -14,7 +14,10 @@ const app = express();
 app.use(cookieParser());
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:4173"],
+    origin: [
+      process.env.VITE_REACT_APP_URL as string,
+      process.env.VITE_REACT_APP_URL_DEV as string,
+    ],
     credentials: true,
   })
 );

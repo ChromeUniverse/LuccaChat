@@ -1,5 +1,5 @@
 import express from "express";
-import { PrismaClient } from "@prisma/client";
+import prisma from "../prisma";
 import { z } from "zod";
 import { isLoggedIn } from "../middleware/login";
 import { messageSchema } from "../zod/api-messages";
@@ -9,9 +9,6 @@ import { userSchema } from "../zod/user";
 // Express router config
 const api = express.Router();
 api.use(express.json());
-
-// Prisma setup
-const prisma = new PrismaClient();
 
 api.get("/", (req, res) => {
   res.send("Hello World!");
