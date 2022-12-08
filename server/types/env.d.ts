@@ -8,6 +8,7 @@ declare global {
       GITHUB_CLIENT_ID: string;
       GITHUB_CLIENT_SECRET: string;
       JWT_SECRET: string;
+      WS_JWT_SECRET: string;
       JWT_EXPIRY: number;
       HTTP_PORT: number;
       WS_PORT: number;

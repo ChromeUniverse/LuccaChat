@@ -9,6 +9,6 @@ import ws from "ws";
 
 declare module "ws" {
   export interface WebSocket extends ws {
-    userId: string;
+    userId?: string;
   }
 }
