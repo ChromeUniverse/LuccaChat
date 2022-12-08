@@ -4,6 +4,9 @@ import { accentColorSchema } from "./user";
 // Base data (Websockets messages)
 export const baseDataSchema = z.object({
   dataType: z.enum([
+    // auth
+    "auth",
+    "auth-ack",
     // messages
     "add-message",
     "delete-message",
@@ -34,6 +37,22 @@ export const baseDataSchema = z.object({
     // update image
     "update-image",
   ]),
+});
+
+//---------------------------------------------------------------
+
+// Auth
+// CLIENT -> SERVER
+
+export const authSchema = baseDataSchema.extend({
+  token: z.string(),
+});
+
+// Auth ACK
+// SERVER -> CLIENT
+
+export const authAckSchema = baseDataSchema.extend({
+  error: z.boolean(),
 });
 
 //---------------------------------------------------------------

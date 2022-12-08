@@ -14,3 +14,7 @@ export const userSchema = z.object({
   name: z.string(),
   accentColor: accentColorSchema,
 });
+
+export const currentUserSchema = userSchema.extend({
+  wsAuthToken: z.string(),
+});
