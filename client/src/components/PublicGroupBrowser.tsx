@@ -73,7 +73,7 @@ function GroupCard({ group, setErrorPrompt }: GroupCardProps) {
       {/* Group photo */}
       <div className="flex flex-col items-center justify-center gap-4">
         <img
-          className="rounded-full w-24 h-24"
+          className="rounded-full w-24 h-24 object-cover"
           src={`${import.meta.env.VITE_BACKEND_URL}/avatars/${
             group.id
           }.jpeg?${Date.now()}`}
