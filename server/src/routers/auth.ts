@@ -51,8 +51,10 @@ passport.use(
       // First add the user to DB...
       const createdUser = await prisma.user.create({
         data: {
-          name: profile.displayName,
-          handle: (profile._json.email as string).split("@")[0],
+          name: profile.displayName.substring(0, 20),
+          handle: (profile._json.email as string)
+            .split("@")[0]
+            .substring(0, 15),
           authProvider: "GOOGLE",
           authProviderId: profile.id,
         },
@@ -90,8 +92,8 @@ passport.use(
       // first, add new user to DB...
       const createdUser = await prisma.user.create({
         data: {
-          name: profile.displayName,
-          handle: profile.username as string,
+          name: profile.displayName.substring(0, 20),
+          handle: (profile.username as string).substring(0, 15),
           authProvider: "GITHUB",
           authProviderId: profile.id,
         },
