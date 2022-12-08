@@ -24,6 +24,8 @@ import {
   joinGroupSchema,
   joinGroupAckSchema,
   errorGroupInfoSchema,
+  authSchema,
+  authAckSchema,
 } from "../../../server/src/zod/schemas";
 import { JsonSuperParse } from "../misc";
 import { messageSchema } from "../../../server/src/zod/api-messages";
@@ -40,6 +42,15 @@ import { usePreferenceStore } from "../zustand/userPreferences";
 
 let ws: WebSocket;
 let consumers = 0;
+let authToken: string = "";
+
+function sendAuthRequest() {
+  const authRequest: z.infer<typeof authSchema> = {
+    dataType: "auth",
+    token: authToken,
+  };
+  ws.send(JSON.stringify(authRequest));
+}
 
 function sendMessage(content: string) {
   const currentChatId = useChatsStore.getState().currentChatId;
@@ -196,23 +207,22 @@ export default function useWebSockets() {
     consumers += 1;
     console.log("Total consumers: ", consumers);
 
-    if (
-      ws !== undefined &&
-      ws.readyState !== ws.CLOSED &&
-      ws.readyState !== ws.CLOSING
-    ) {
+    if (ws !== undefined && ws.readyState === ws.OPEN) {
       console.log(ws.readyState);
       return console.log("Socket already created...");
     }
 
     console.log("Creating WS");
 
-    if (consumers === 1)
+    if (consumers === 1) {
       ws = new WebSocket(import.meta.env.VITE_WEBSOCKETS_URL);
+    }
 
     // Connection opened
     ws.addEventListener("open", (event) => {
       console.log("Connected to WS server!");
+
+      if (authToken) sendAuthRequest();
     });
 
     // Listen for messages
@@ -220,6 +230,13 @@ export default function useWebSockets() {
       console.log("Message from server ", event.data);
       const jsonData = JsonSuperParse(event.data);
       const data = baseDataSchema.parse(jsonData);
+
+      // auth sucessful!
+      if (data.dataType === "auth-ack") {
+        const { error } = authAckSchema.parse(jsonData);
+        if (error) return console.error("Error auth-ing with WS server");
+        else console.log("Sucess! Auth'd with WS server.");
+      }
 
       // Chat messages
       if (data.dataType === "add-message") {
@@ -417,11 +434,24 @@ export default function useWebSockets() {
         );
       }
     });
+
+    // get auth token
+    const authTokenReceivedHandler = (token: string) => {
+      authToken = token;
+
+      if (ws !== undefined && ws.readyState === ws.OPEN) {
+        sendAuthRequest();
+      }
+    };
+
+    emitter.on("gotWsAuthToken", authTokenReceivedHandler);
+
     return () => {
       consumers -= 1;
       console.log("Total consumers: ", consumers);
       if (consumers === 0) ws.close();
       console.log("Closed");
+      emitter.off("gotWsAuthToken", authTokenReceivedHandler);
     };
   }, []);
 

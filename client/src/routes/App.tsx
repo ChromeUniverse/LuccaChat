@@ -51,6 +51,7 @@ type Events = {
   memberKicked: z.infer<typeof removeMemberSchema>;
   errorGroupInfo: z.infer<typeof errorGroupInfoSchema>;
   gotJoinGroupAck: z.infer<typeof joinGroupAckSchema>;
+  gotWsAuthToken: string;
 };
 
 export const emitter = mitt<Events>();
@@ -108,6 +109,7 @@ function App() {
       const { data: user } = await fetchCurrentUser();
       if (!user) return window.location.replace("/");
       userInfoInit(user.id, user.name, user.handle);
+      emitter.emit("gotWsAuthToken", user.wsAuthToken);
 
       // Set accent color
       const setAccentColor = usePreferenceStore.getState().setAccentColor;

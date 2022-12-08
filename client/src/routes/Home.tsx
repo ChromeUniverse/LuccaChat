@@ -48,7 +48,7 @@ function LoginButton({ provider }: LoginButtonProps) {
 
   return (
     <a
-      href={`http://localhost:8080/auth/${provider}`}
+      href={`${import.meta.env.VITE_BACKEND_URL}/auth/${provider}`}
       className="bg-white border-blue-700 border-2 px-8 py-3 rounded-full flex items-center justify-center gap-4 outline-none hover:brightness-90 shadow-2xl transition-all"
       onClick={clickHandler}
     >
