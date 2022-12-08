@@ -18,6 +18,14 @@ export async function handleUpdateUserSettings(
   jsonData: any
 ) {
   try {
+    // check if user is auth'd
+    if (!ws.userId) {
+      ws.close();
+      throw new Error(
+        "VIOLATION: Unauthenticated user tried updating user settings"
+      );
+    }
+
     // Extract updated group data from WS message
     const updatedUserData = updateUserSettingsSchema.parse(jsonData);
     const { name, handle, accentColor } = updatedUserData;

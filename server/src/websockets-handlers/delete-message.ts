@@ -10,6 +10,12 @@ export async function handleDeleteMessage(
   jsonData: any
 ) {
   try {
+    // check if user is auth'd
+    if (!ws.userId) {
+      ws.close();
+      throw new Error("VIOLATION: Unauthenticated user tried deleting message");
+    }
+
     const messageData = deleteMessageSchema.parse(jsonData);
 
     console.log("Got delete message data from client:", messageData);

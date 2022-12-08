@@ -11,6 +11,12 @@ export async function handleDeleteGroup(
   jsonData: any
 ) {
   try {
+    // check if user is auth'd
+    if (!ws.userId) {
+      ws.close();
+      throw new Error("VIOLATION: Unauthenticated user tried deleting group");
+    }
+
     // Extract data from WS message
     const deleteGroupData = deleteGroupSchema.parse(jsonData);
 

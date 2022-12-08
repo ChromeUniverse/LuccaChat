@@ -19,6 +19,12 @@ export async function handleJoinGroup(
   jsonData: any
 ) {
   try {
+    // check if user is auth'd
+    if (!ws.userId) {
+      ws.close();
+      throw new Error("VIOLATION: Unauthenticated user tried joining group");
+    }
+
     // Extract data from WS message
     const { groupId } = joinGroupSchema.parse(jsonData);
     const groupToUpdate = await prisma.chat.findUnique({

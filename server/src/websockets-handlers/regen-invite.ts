@@ -11,6 +11,14 @@ export async function handleRegenInvite(
   jsonData: any
 ) {
   try {
+    // check if user is auth'd
+    if (!ws.userId) {
+      ws.close();
+      throw new Error(
+        "VIOLATION: Unauthenticated user tried updating resetting group invite"
+      );
+    }
+
     // Extract updated group data from WS message
     const { groupId } = regenInviteSchema.parse(jsonData);
 

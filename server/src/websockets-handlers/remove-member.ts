@@ -10,6 +10,14 @@ export async function handleRemoveMember(
   jsonData: any
 ) {
   try {
+    // check if user is auth'd
+    if (!ws.userId) {
+      ws.close();
+      throw new Error(
+        "VIOLATION: Unauthenticated user tried kicking member from group"
+      );
+    }
+
     // Extract updated group data from WS message
     const removedMemberData = removeMemberSchema.parse(jsonData);
 

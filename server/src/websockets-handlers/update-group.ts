@@ -19,6 +19,14 @@ export async function handleUpdateGroup(
   jsonData: any
 ) {
   try {
+    // check if user is auth'd
+    if (!ws.userId) {
+      ws.close();
+      throw new Error(
+        "VIOLATION: Unauthenticated user tried updating group settings"
+      );
+    }
+
     // Extract updated group data from WS message
     const data = updateGroupSchema.parse(jsonData);
 

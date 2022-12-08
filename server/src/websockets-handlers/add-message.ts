@@ -11,6 +11,12 @@ export async function handleAddMessage(
   jsonData: any
 ) {
   try {
+    // check if user is auth'd
+    if (!ws.userId) {
+      ws.close();
+      throw new Error("VIOLATION: Unauthenticated user tried adding a message");
+    }
+
     const messageData = addMessageSchema.parse(jsonData);
 
     console.log("Got message data from client:", messageData);

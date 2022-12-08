@@ -16,6 +16,12 @@ export async function handleSendRequest(
   jsonData: any
 ) {
   try {
+    // check if user is auth'd
+    if (!ws.userId) {
+      ws.close();
+      throw new Error("VIOLATION: Unauthenticated user tried sending request");
+    }
+
     const { handle } = sendRequestSchema.parse(jsonData);
     const targetUser = await prisma.user.findUnique({
       where: { handle: handle },

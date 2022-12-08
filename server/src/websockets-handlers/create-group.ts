@@ -17,6 +17,12 @@ export async function handleCreateGroup(
   jsonData: any
 ) {
   try {
+    // check if user is auth'd
+    if (!ws.userId) {
+      ws.close();
+      throw new Error("VIOLATION: Unauthenticated user tried creating group");
+    }
+
     // Extract new group data from WS message
     const { name, description, isPublic, image } =
       createGroupSchema.parse(jsonData);

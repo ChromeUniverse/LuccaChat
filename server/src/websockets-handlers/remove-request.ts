@@ -11,6 +11,12 @@ export async function handleRemoveRequest(
   jsonData: any
 ) {
   try {
+    // check if user is auth'd
+    if (!ws.userId) {
+      ws.close();
+      throw new Error("VIOLATION: Unauthenticated user tried removing request");
+    }
+
     // Find this request in database
     const { requestId, action } = removeRequestSchema.parse(jsonData);
 
