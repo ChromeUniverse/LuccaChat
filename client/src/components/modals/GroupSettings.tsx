@@ -37,7 +37,9 @@ function GroupSettings() {
   const [prompt, setPrompt] = useState("");
   const [updatePrompt, setUpdatePrompt] = useState("");
 
-  const defaultSrc = `http://localhost:8080/avatars/${group.id}.jpeg`;
+  const defaultSrc = `http://${import.meta.env.VITE_BACKEND_URL}/avatars/${
+    group.id
+  }.jpeg`;
   const [imgDataURL, setImgDataURL] = useState("");
 
   // errors
