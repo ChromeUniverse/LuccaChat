@@ -4,7 +4,9 @@ import { z } from "zod";
 import { isLoggedIn } from "../middleware/login";
 import { messageSchema } from "../zod/api-messages";
 import { chatSchema, chatsSchema } from "../zod/api-chats";
-import { userSchema } from "../zod/user";
+import { currentUserSchema, userSchema } from "../zod/user";
+import { asyncJWTsign } from "../misc/jwt";
+import { WsAuthJwtToSend } from "../../types/jwt";
 
 // Express router config
 const api = express.Router();
@@ -32,7 +34,18 @@ api.get("/user", isLoggedIn, async (req, res) => {
 
   if (!user) return res.sendStatus(404);
 
-  const dataToSend: z.infer<typeof userSchema> = user;
+  const payload: WsAuthJwtToSend = { id: user.id };
+
+  const dataToSend: z.infer<typeof currentUserSchema> = {
+    id: user.id,
+    name: user.name,
+    handle: user.handle,
+    accentColor: user.accentColor,
+    wsAuthToken: (await asyncJWTsign(
+      payload,
+      process.env.WS_JWT_SECRET as string
+    )) as string,
+  };
 
   res.json(dataToSend);
 });
