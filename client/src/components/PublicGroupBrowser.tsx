@@ -102,7 +102,7 @@ function GroupCard({ group, setErrorPrompt }: GroupCardProps) {
           on {formatDate(group.createdAt)}
         </p>
         {/* Group Description */}
-        <p className="mt-2 text-slate-200">{group.description}</p>
+        <p className="mt-2 dark:text-slate-200">{group.description}</p>
       </div>
     </div>
   );
