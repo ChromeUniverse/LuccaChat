@@ -16,6 +16,8 @@ type Props = {};
 
 type Events = {
   gotJoinGroupAck: z.infer<typeof joinGroupAckSchema>;
+  gotWsAuthToken: string;
+  authSuccess: any;
 };
 
 export const inviteEmitter = mitt<Events>();
@@ -85,15 +87,13 @@ function Invite({}: Props) {
     const { data } = await fetchCurrentUser();
     if (!data) return navigate("/");
 
-    // second, check if they're already a part of this group...
-    const memberIds = group.members.map((m) => m.id);
-    if (!memberIds.includes(data.id)) {
-      // ...
-      console.log("Already a member of this group");
-    }
+    // second, authenticate with the WebSockets server
+    inviteEmitter.emit("gotWsAuthToken", data.wsAuthToken);
 
     // third, send the "join group" request over websockets
-    sendJoinGroup(group.id);
+    inviteEmitter.on("authSuccess", () => {
+      sendJoinGroup(group.id);
+    });
   }
 
   return (

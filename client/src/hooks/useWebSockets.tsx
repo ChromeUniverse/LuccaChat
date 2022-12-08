@@ -236,6 +236,7 @@ export default function useWebSockets() {
         const { error } = authAckSchema.parse(jsonData);
         if (error) return console.error("Error auth-ing with WS server");
         else console.log("Sucess! Auth'd with WS server.");
+        inviteEmitter.emit("authSuccess");
       }
 
       // Chat messages
@@ -444,14 +445,20 @@ export default function useWebSockets() {
       }
     };
 
+    // add event listeners
     emitter.on("gotWsAuthToken", authTokenReceivedHandler);
+    inviteEmitter.on("gotWsAuthToken", authTokenReceivedHandler);
 
     return () => {
+      // sever websocket connection
       consumers -= 1;
       console.log("Total consumers: ", consumers);
       if (consumers === 0) ws.close();
       console.log("Closed");
+
+      // close event listeners
       emitter.off("gotWsAuthToken", authTokenReceivedHandler);
+      inviteEmitter.off("gotWsAuthToken", authTokenReceivedHandler);
     };
   }, []);
 
