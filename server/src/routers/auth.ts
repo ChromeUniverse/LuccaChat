@@ -1,6 +1,7 @@
 import express from "express";
 import passport from "passport";
 import session from "express-session";
+import cookieSession from "cookie-session";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Strategy as GitHubStrategy } from "passport-github";
 import prisma from "../prisma";
@@ -15,11 +16,12 @@ import { userSchema } from "../zod/user";
 const auth = express.Router();
 auth.use(express.json());
 auth.use(
-  session({
+  cookieSession({
+    name: "session",
     secret: "test",
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: true },
+    maxAge: 24 * 60 * 60 * 1000,
+    httpOnly: true,
+    secure: true,
   })
 );
 
@@ -150,6 +152,7 @@ auth.get(
   passport.authenticate("google", {
     failureRedirect: "/login",
     failureMessage: true,
+    session: false,
   }),
   sendAuthJWT
 );
@@ -162,6 +165,7 @@ auth.get(
   passport.authenticate("github", {
     failureRedirect: "/login",
     failureMessage: true,
+    session: false,
   }),
   sendAuthJWT
 );
