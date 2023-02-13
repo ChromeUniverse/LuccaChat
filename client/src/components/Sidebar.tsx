@@ -49,6 +49,9 @@ function Sidebar({}: Props) {
 
   // Fetch chats, sort by latest first
   const chats = useChatsStore((state) => state.chats);
+  const sortedChats = chats.sort(
+    (c1, c2) => c2.latest.getTime() - c1.latest.getTime()
+  );
 
   // Fetch requests
   const requests = useRequestsStore((state) => state.requests);
@@ -64,10 +67,10 @@ function Sidebar({}: Props) {
 
   // Using memoized derived state to filter and sort chats
   const processedChats = useMemo(() => {
-    if (!searchInput) return chats;
+    if (!searchInput) return sortedChats;
 
     return (
-      chats
+      sortedChats
         // filter by search input string
         .filter((chat) =>
           chat.type === "dm"
@@ -79,8 +82,6 @@ function Sidebar({}: Props) {
                 .includes(searchInput.toLowerCase())
             : chat.name.toLowerCase().includes(searchInput.toLowerCase())
         )
-        // sort by latest chats
-        .sort((c1, c2) => c2.latest.getTime() - c1.latest.getTime())
     );
   }, [chats, searchInput]);
 

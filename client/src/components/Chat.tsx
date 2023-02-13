@@ -260,8 +260,11 @@ function Chat() {
   }
 
   function handleScroll() {
-    if (getScrollDiff() > 300) setShowJumpButton(true);
-    else setShowJumpButton(false);
+    let newShowJumpButton: boolean;
+    if (getScrollDiff() > 300) newShowJumpButton = true;
+    else newShowJumpButton = false;
+    setShowJumpButton(newShowJumpButton);
+    return newShowJumpButton;
   }
 
   function scrollToBottom(smooth = true) {
@@ -273,16 +276,14 @@ function Chat() {
   useEffect(() => {
     const onChatMessage = () => {
       setTimeout(() => {
-        handleScroll();
-        scrollToBottom();
+        const newShowJumpButton = handleScroll();
+        console.log(`newShowJumpButton is ${newShowJumpButton}`);
+        if (!newShowJumpButton) scrollToBottom();
       }, 50);
     };
 
     emitter.on("addChatMessage", onChatMessage);
-
-    return () => {
-      emitter.off("addChatMessage", onChatMessage);
-    };
+    return () => emitter.off("addChatMessage", onChatMessage);
   }, []);
 
   return (
