@@ -4,6 +4,7 @@
   "description": "",
   "main": "src/server.ts",
   "scripts": {
+    "build": "tsc",
     "dev-ws": "nodemon src/wss.ts",
     "dev-http": "nodemon src/server.ts",
     "prod-run-ws": "node dist/wss.js",
