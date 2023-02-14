@@ -84,7 +84,7 @@ function AddChat() {
       <div className="mt-6 px-6 flex flex-row gap-8">
         <Card
           description="Chat privately with friends in DMs"
-          imgSrc="https://cdn.kapwing.com/video_image-qEslsWspL.jpg"
+          imgSrc="/texting.jpg"
           btnText="Add Friend"
           nextModal="add-friend"
         />
